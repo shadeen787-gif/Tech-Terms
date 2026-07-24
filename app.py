@@ -625,6 +625,12 @@ st.markdown(
     @keyframes cycleFade {{ 0% {{ opacity:0; transform:translateY(6px); }} 6% {{ opacity:1; transform:translateY(0); }} 20% {{ opacity:1; }} 26% {{ opacity:0; transform:translateY(-6px); }} 100% {{ opacity:0; }} }}
 
     /* ---------- Toggle (المظهر) ---------- */
+    div[data-testid="stRadio"] label p,
+    div[data-testid="stRadio"] label span,
+    div[data-testid="stRadio"] div[data-testid="stWidgetLabel"] p {{
+        color: var(--text) !important;
+        font-weight: 600 !important;
+    }}
     div[data-testid="stToggle"] label p {{ color: var(--text) !important; font-weight:600; }}
 
     /* =====================================================================
@@ -635,20 +641,29 @@ st.markdown(
        الرئيسي عرضه الكامل، مع تصغير الخطوط والمسافات لتناسب الشاشة الصغيرة.
        ===================================================================== */
     @media (max-width: 768px) {{
-        section[data-testid="stSidebar"] {{
+        /* أهم سطر بالإصلاح: نحوّل الحاوية الرئيسية من flex-row إلى block
+           حتى لا "تحجز" مساحة ثابتة بجانب القائمة الجانبية بعد الآن —
+           فيصير المحتوى يأخذ عرض الشاشة كاملاً دائمًا. */
+        div[data-testid="stAppViewContainer"] {{
+            display: block !important;
+        }}
+        /* القائمة الجانبية تُصبح طبقة عائمة (overlay) فوق المحتوى فقط
+           عندما تكون مفتوحة — حالة الإغلاق تبقى كما هي (تعمل أصلاً). */
+        section[data-testid="stSidebar"][aria-expanded="true"] {{
             position: fixed !important;
             top: 0 !important;
+            inset-inline-end: 0 !important;
+            right: 0 !important;
             height: 100dvh !important;
             width: min(82vw, 300px) !important;
             max-width: 300px !important;
             z-index: 999997 !important;
             box-shadow: -18px 0 45px rgba(0,0,0,0.55) !important;
         }}
-        div[data-testid="stAppViewContainer"] > div:first-child {{
-            width: 100% !important;
-        }}
         .block-container {{
             max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
             padding-top: 4.6rem !important;
