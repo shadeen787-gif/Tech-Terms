@@ -165,7 +165,7 @@ load_favorites_from_local_storage()
 
 
 # ---------------------------------------------------------------------
-# حفظ السجل في Local Storage الخاص بالمتصفح)
+# حفظ السجل في Local Storage الخاص بالمتصفح (نفس منطق المفضلة تمامًا)
 # ---------------------------------------------------------------------
 def load_history_from_local_storage():
     """يقرأ السجل من Local Storage مرة واحدة عند بداية الجلسة."""
@@ -238,7 +238,7 @@ def show_existing_result(entry):
 
 
 # =====================================================================
-# الوان الثيم
+# الألوان حسب الثيم
 # =====================================================================
 THEMES = {
     "dark": dict(
@@ -258,7 +258,7 @@ T = THEMES[st.session_state.theme]
 ACTIVE_PAGE = st.session_state.page
 
 # =====================================================================
-# CSS  تصميم Premium AI SaaS
+# CSS — تصميم Premium AI SaaS
 # =====================================================================
 st.markdown(
     f"""
@@ -626,6 +626,45 @@ st.markdown(
 
     /* ---------- Toggle (المظهر) ---------- */
     div[data-testid="stToggle"] label p {{ color: var(--text) !important; font-weight:600; }}
+
+    /* =====================================================================
+       دعم الجوال والشاشات الصغيرة
+       المشكلة الأساسية: القائمة الجانبية كانت "تضغط" المحتوى الرئيسي لعمود
+       ضيق جدًا بدل ما تطفو فوقه، فصار النص ينكتب حرف تحت حرف.
+       الحل: نجعلها تطفو فوق المحتوى (overlay) بعرض محدود، ونعيد للمحتوى
+       الرئيسي عرضه الكامل، مع تصغير الخطوط والمسافات لتناسب الشاشة الصغيرة.
+       ===================================================================== */
+    @media (max-width: 768px) {{
+        section[data-testid="stSidebar"] {{
+            position: fixed !important;
+            top: 0 !important;
+            height: 100dvh !important;
+            width: min(82vw, 300px) !important;
+            max-width: 300px !important;
+            z-index: 999997 !important;
+            box-shadow: -18px 0 45px rgba(0,0,0,0.55) !important;
+        }}
+        div[data-testid="stAppViewContainer"] > div:first-child {{
+            width: 100% !important;
+        }}
+        .block-container {{
+            max-width: 100% !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 4.6rem !important;
+        }}
+        .term-title {{ font-size: 1.9rem !important; }}
+        .term-sub {{ font-size: 1rem !important; }}
+        .term-eyebrow {{ font-size: .85rem !important; }}
+        .page-title {{ font-size: 1.5rem !important; }}
+        .page-sub {{ font-size: .95rem !important; }}
+        .brand {{ font-size: 1.3rem !important; }}
+        .stat-box {{ padding: .7rem !important; }}
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"] {{
+            top: 0.5rem !important;
+        }}
+    }}
     </style>
 
     <div class="bg-fx">
@@ -641,7 +680,7 @@ st.markdown(
 )
 
 # =====================================================================
-# منطق الذكاء الاصطناعي (Groq) 
+# منطق الذكاء الاصطناعي (Groq) — بدون أي تغيير في المنطق
 # =====================================================================
 if not api_key:
     st.error("⚠️ لم يتم العثور على مفتاح API. تأكد من ملف .env (المتغير GROQ_API_KEY)")
@@ -857,7 +896,7 @@ def render_result(term, text):
 # =====================================================================
 def render_sidebar():
     with st.sidebar:
-        st.markdown('<div class="brand">🖥️ <span>TechTerms</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand">🖥️ <span>TechWiki</span></div>', unsafe_allow_html=True)
         st.markdown('<div class="brand-sub">Learn Technical Terms with AI</div>', unsafe_allow_html=True)
         st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
 
@@ -896,9 +935,9 @@ def page_home():
     st.markdown(
         """
         <div class="term-hero">
-            <div class="term-eyebrow">// Tech Terms</div>
-            <div class="term-title">🖥️ Tech Terms</div>
-            <div class="term-sub">اكتب أي مصطلح تقني وراح يشرحه لك الذكاء الاصطناعي بالعربي مع أمثلة </div>
+            <div class="term-eyebrow">// TECHWIKI</div>
+            <div class="term-title">🖥️ TechWiki</div>
+            <div class="term-sub">Learn Technical Terms with AI</div>
         </div>
         """,
         unsafe_allow_html=True,
