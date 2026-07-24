@@ -111,6 +111,8 @@ _DEFAULTS = {
     "_hist_save_ctr": 0,
     "theme_radio_side": "dark",
     "theme_radio_settings": "dark",
+    "theme_radio_mobile": "dark",
+    "mobile_nav_open": False,
 }
 for k, v in _DEFAULTS.items():
     if k not in st.session_state:
@@ -211,11 +213,19 @@ load_history_from_local_storage()
 def _sync_theme_from_sidebar():
     st.session_state.theme = st.session_state.theme_radio_side
     st.session_state.theme_radio_settings = st.session_state.theme_radio_side
+    st.session_state.theme_radio_mobile = st.session_state.theme_radio_side
 
 
 def _sync_theme_from_settings():
     st.session_state.theme = st.session_state.theme_radio_settings
     st.session_state.theme_radio_side = st.session_state.theme_radio_settings
+    st.session_state.theme_radio_mobile = st.session_state.theme_radio_settings
+
+
+def _sync_theme_from_mobile():
+    st.session_state.theme = st.session_state.theme_radio_mobile
+    st.session_state.theme_radio_side = st.session_state.theme_radio_mobile
+    st.session_state.theme_radio_settings = st.session_state.theme_radio_mobile
 
 
 def trigger_new_search(term):
@@ -635,31 +645,74 @@ st.markdown(
 
     /* =====================================================================
        دعم الجوال والشاشات الصغيرة
-       المشكلة الأساسية: القائمة الجانبية كانت "تضغط" المحتوى الرئيسي لعمود
-       ضيق جدًا بدل ما تطفو فوقه، فصار النص ينكتب حرف تحت حرف.
-       الحل: نجعلها تطفو فوق المحتوى (overlay) بعرض محدود، ونعيد للمحتوى
-       الرئيسي عرضه الكامل، مع تصغير الخطوط والمسافات لتناسب الشاشة الصغيرة.
+       بعد عدة محاولات للتحكم بالقائمة الجانبية الأصلية لـ Streamlit عبر CSS
+       بدون نتيجة موثوقة على الجوال، الحل الأضمن: نخفي القائمة الأصلية
+       بالكامل على الشاشات الصغيرة، ونستخدم بدلها شريطًا علويًا بزر ☰
+       (Burger Menu) مبني بالكامل بعناصر مخصصة نتحكم فيها 100%.
        ===================================================================== */
+    .st-key-mobile_topbar, .st-key-mobile_nav_panel {{ display: none; }}
+
     @media (max-width: 768px) {{
-        /* أهم سطر بالإصلاح: نحوّل الحاوية الرئيسية من flex-row إلى block
-           حتى لا "تحجز" مساحة ثابتة بجانب القائمة الجانبية بعد الآن —
-           فيصير المحتوى يأخذ عرض الشاشة كاملاً دائمًا. */
+        /* إخفاء القائمة الجانبية الأصلية وزر فتحها بالكامل على الجوال */
+        section[data-testid="stSidebar"],
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"] {{
+            display: none !important;
+        }}
         div[data-testid="stAppViewContainer"] {{
             display: block !important;
         }}
-        /* القائمة الجانبية تُصبح طبقة عائمة (overlay) فوق المحتوى فقط
-           عندما تكون مفتوحة — حالة الإغلاق تبقى كما هي (تعمل أصلاً). */
-        section[data-testid="stSidebar"][aria-expanded="true"] {{
-            position: fixed !important;
-            top: 0 !important;
-            inset-inline-end: 0 !important;
-            right: 0 !important;
-            height: 100dvh !important;
-            width: min(82vw, 300px) !important;
-            max-width: 300px !important;
-            z-index: 999997 !important;
-            box-shadow: -18px 0 45px rgba(0,0,0,0.55) !important;
+
+        /* الشريط العلوي المخصص + زر البرقر منيو */
+        .st-key-mobile_topbar {{
+            display: flex !important;
+            align-items: center;
+            position: fixed;
+            top: 0; right: 0; left: 0;
+            z-index: 999996;
+            background: var(--bg-elev);
+            border-bottom: 1px solid var(--border);
+            padding: .6rem 1rem;
         }}
+        .mobile-topbar-brand {{
+            font-weight: 900; font-size: 1.15rem; color: var(--text);
+            padding-top: .3rem;
+        }}
+        .st-key-mobile_topbar button {{
+            background: linear-gradient(135deg, var(--violet), var(--accent)) !important;
+            border: 2px solid var(--violet) !important;
+            color: #fff !important;
+            font-size: 1.4rem !important;
+            font-weight: 900 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 0 18px var(--violet-glow) !important;
+            height: 2.8rem !important;
+            padding: 0 !important;
+        }}
+
+        /* قائمة الجوال المنسدلة (تظهر فقط عند الفتح) */
+        .st-key-mobile_nav_panel {{
+            display: block !important;
+            position: fixed;
+            top: 3.6rem; right: 0; left: 0; bottom: 0;
+            z-index: 999995;
+            background: var(--bg);
+            padding: 1rem;
+            overflow-y: auto;
+            animation: fadeIn .2s ease;
+        }}
+        .st-key-mobile_nav_panel div[data-testid="stButton"] button {{
+            background: var(--bg-elev) !important;
+            color: var(--text) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+            font-size: 1.1rem !important;
+            padding: .8rem !important;
+            margin-bottom: .6rem !important;
+            justify-content: flex-start !important;
+        }}
+
         .block-container {{
             max-width: 100% !important;
             width: 100% !important;
@@ -675,10 +728,6 @@ st.markdown(
         .page-sub {{ font-size: .95rem !important; }}
         .brand {{ font-size: 1.3rem !important; }}
         .stat-box {{ padding: .7rem !important; }}
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="collapsedControl"] {{
-            top: 0.5rem !important;
-        }}
     }}
     </style>
 
@@ -941,8 +990,48 @@ def render_sidebar():
 
 
 # =====================================================================
-# الصفحات
+# قائمة الجوال (Burger Menu) — عنصر مخصص كامل مستقل عن القائمة الجانبية
+# الأصلية لـ Streamlit، لأن الأخيرة يصعب التحكم في سلوكها على الجوال عبر
+# CSS فقط. هذا الشريط والقائمة يظهران فقط على الشاشات الصغيرة (media query)،
+# بينما القائمة الجانبية الأصلية تختفي بالكامل على نفس الشاشات الصغيرة.
 # =====================================================================
+def render_mobile_topbar():
+    with st.container(key="mobile_topbar"):
+        c1, c2 = st.columns([5, 1])
+        with c1:
+            st.markdown('<div class="mobile-topbar-brand">🖥️ TechWiki</div>', unsafe_allow_html=True)
+        with c2:
+            if st.button("☰", key="mobile_menu_btn"):
+                st.session_state.mobile_nav_open = not st.session_state.mobile_nav_open
+                st.rerun()
+
+
+def render_mobile_nav_panel():
+    if not st.session_state.mobile_nav_open:
+        return
+    with st.container(key="mobile_nav_panel"):
+        for key, icon, label in NAV_ITEMS:
+            if st.button(f"{icon}  {label}", key=f"mobilenav_{key}", use_container_width=True):
+                st.session_state.page = key
+                st.session_state.mobile_nav_open = False
+                st.rerun()
+
+        st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="theme-label">المظهر</div>', unsafe_allow_html=True)
+        st.radio(
+            "المظهر", options=["dark", "light"],
+            format_func=lambda v: "🌙 داكن" if v == "dark" else "☀️ فاتح",
+            key="theme_radio_mobile", on_change=_sync_theme_from_mobile,
+            horizontal=True, label_visibility="collapsed",
+        )
+
+        st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
+        if st.button("✕ إغلاق القائمة", key="mobile_nav_close", use_container_width=True):
+            st.session_state.mobile_nav_open = False
+            st.rerun()
+
+
+
 def page_home():
     if "pending_term" in st.session_state:
         st.session_state.term_input = st.session_state.pop("pending_term")
@@ -1082,6 +1171,8 @@ def page_settings():
 # التشغيل
 # =====================================================================
 render_sidebar()
+render_mobile_topbar()
+render_mobile_nav_panel()
 
 _PAGES = {
     "home": page_home,
