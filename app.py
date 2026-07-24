@@ -645,10 +645,10 @@ st.markdown(
 
     /* =====================================================================
        دعم الجوال والشاشات الصغيرة
-       بعد عدة محاولات للتحكم بالقائمة الجانبية الأصلية لـ Streamlit عبر CSS
-       بدون نتيجة موثوقة على الجوال، الحل الأضمن: نخفي القائمة الأصلية
-       بالكامل على الشاشات الصغيرة، ونستخدم بدلها شريطًا علويًا بزر ☰
-       (Burger Menu) مبني بالكامل بعناصر مخصصة نتحكم فيها 100%.
+       بعد تجارب متعددة مع position:fixed تعارضت مع شريط Streamlit Cloud
+       العلوي (Fork/GitHub) اللي لا يمكن التحكم فيه من كودنا، الحل الأنظف:
+       نجعل شريط وقائمة الجوال جزءًا طبيعيًا من تدفق الصفحة (مو عائمين)،
+       فما فيه أي احتمال تداخل أو تراكب مع أي عنصر خارج تحكمنا.
        ===================================================================== */
     .st-key-mobile_topbar, .st-key-mobile_nav_panel {{ display: none; }}
 
@@ -663,70 +663,81 @@ st.markdown(
             display: block !important;
         }}
 
-        /* الشريط العلوي المخصص + زر البرقر منيو */
-        .st-key-mobile_topbar {{
-            display: flex !important;
-            align-items: center;
-            position: fixed;
-            top: 0; right: 0; left: 0;
-            z-index: 999996;
-            background: var(--bg-elev);
-            border-bottom: 1px solid var(--border);
-            padding: .6rem 1rem;
-        }}
-        .mobile-topbar-brand {{
-            font-weight: 900; font-size: 1.15rem; color: var(--text);
-            padding-top: .3rem;
-        }}
-        .st-key-mobile_topbar button {{
-            background: linear-gradient(135deg, var(--violet), var(--accent)) !important;
-            border: 2px solid var(--violet) !important;
-            color: #fff !important;
-            font-size: 1.4rem !important;
-            font-weight: 900 !important;
-            border-radius: 12px !important;
-            box-shadow: 0 0 18px var(--violet-glow) !important;
-            height: 2.8rem !important;
-            padding: 0 !important;
-        }}
-
-        /* قائمة الجوال المنسدلة (تظهر فقط عند الفتح) */
-        .st-key-mobile_nav_panel {{
-            display: block !important;
-            position: fixed;
-            top: 3.6rem; right: 0; left: 0; bottom: 0;
-            z-index: 999995;
-            background: var(--bg);
-            padding: 1rem;
-            overflow-y: auto;
-            animation: fadeIn .2s ease;
-        }}
-        .st-key-mobile_nav_panel div[data-testid="stButton"] button {{
-            background: var(--bg-elev) !important;
-            color: var(--text) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            font-size: 1.1rem !important;
-            padding: .8rem !important;
-            margin-bottom: .6rem !important;
-            justify-content: flex-start !important;
-        }}
-
         .block-container {{
             max-width: 100% !important;
             width: 100% !important;
             margin: 0 !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
-            padding-top: 4.6rem !important;
+            padding-top: 1.2rem !important;
         }}
-        .term-title {{ font-size: 1.9rem !important; }}
-        .term-sub {{ font-size: 1rem !important; }}
-        .term-eyebrow {{ font-size: .85rem !important; }}
-        .page-title {{ font-size: 1.5rem !important; }}
-        .page-sub {{ font-size: .95rem !important; }}
-        .brand {{ font-size: 1.3rem !important; }}
+
+        /* الشريط العلوي المخصص + زر البرقر منيو — عنصر عادي بتدفق الصفحة */
+        .st-key-mobile_topbar {{
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: .7rem .9rem;
+            margin-bottom: 1rem;
+        }}
+        .st-key-mobile_topbar > div[data-testid="stHorizontalBlock"] {{
+            display: flex !important;
+            align-items: center !important;
+            width: 100%;
+        }}
+        .mobile-topbar-brand {{
+            font-weight: 900; font-size: 1.05rem; color: var(--text);
+        }}
+        .st-key-mobile_topbar div[data-testid="stButton"] {{
+            display: flex; justify-content: flex-end;
+        }}
+        .st-key-mobile_topbar button {{
+            background: var(--violet-soft) !important;
+            border: 1px solid var(--violet) !important;
+            color: var(--violet) !important;
+            font-size: 1.15rem !important;
+            font-weight: 900 !important;
+            border-radius: 10px !important;
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            min-width: 2.5rem !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+        }}
+
+        /* قائمة الجوال المنسدلة — بطاقة عادية تظهر داخل تدفق الصفحة */
+        .st-key-mobile_nav_panel {{
+            display: block !important;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: .9rem;
+            margin-bottom: 1.2rem;
+            animation: fadeIn .2s ease;
+        }}
+        .st-key-mobile_nav_panel div[data-testid="stButton"] button {{
+            background: var(--bg) !important;
+            color: var(--text) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            padding: .65rem .8rem !important;
+            margin-bottom: .5rem !important;
+            justify-content: flex-start !important;
+            box-shadow: none !important;
+        }}
+        .st-key-mobile_nav_panel .theme-label {{ font-size: .9rem; margin-bottom: .4rem; }}
+
+        .term-hero {{ padding-bottom: .9rem; margin-bottom: 1.1rem; }}
+        .term-title {{ font-size: 1.7rem !important; }}
+        .term-sub {{ font-size: .95rem !important; }}
+        .term-eyebrow {{ font-size: .8rem !important; }}
+        .page-title {{ font-size: 1.4rem !important; }}
+        .page-sub {{ font-size: .9rem !important; }}
         .stat-box {{ padding: .7rem !important; }}
     }}
     </style>
