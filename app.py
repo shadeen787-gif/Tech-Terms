@@ -112,7 +112,6 @@ _DEFAULTS = {
     "theme_radio_side": "dark",
     "theme_radio_settings": "dark",
     "theme_radio_mobile": "dark",
-    "mobile_nav_open": False,
 }
 for k, v in _DEFAULTS.items():
     if k not in st.session_state:
@@ -649,7 +648,7 @@ st.markdown(
        نستخدم clamp()/vw بدل القيم الثابتة عشان يناسب كل مقاسات الجوالات
        (320px إلى 768px) بدون transform أو zoom.
        ===================================================================== */
-    .st-key-mobile_topbar, .st-key-mobile_nav_panel {{ display: none; }}
+    .st-key-mobile_sidebar_card {{ display: none; }}
 
     @media (max-width: 768px) {{
         html, body {{ overflow-x: hidden !important; }}
@@ -675,68 +674,68 @@ st.markdown(
         }}
         .block-container * {{ max-width: 100%; }}
 
-        /* ---------- شريط الجوال العلوي (قائمة جانبية داخل الصفحة) ---------- */
-        .st-key-mobile_topbar {{
-            display: flex !important;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-elev);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: clamp(.55rem, 2.6vw, .7rem) clamp(.7rem, 3.5vw, .9rem);
-            margin-bottom: clamp(.8rem, 3.5vw, 1rem);
-            box-sizing: border-box;
-        }}
-        .st-key-mobile_topbar > div[data-testid="stHorizontalBlock"] {{
-            display: flex !important;
-            align-items: center !important;
-            width: 100%;
-        }}
-        .mobile-topbar-brand {{
-            font-weight: 900; font-size: clamp(.95rem, 4vw, 1.05rem); color: var(--text);
-        }}
-        .st-key-mobile_topbar div[data-testid="stButton"] {{
-            display: flex; justify-content: flex-end;
-        }}
-        .st-key-mobile_topbar button {{
-            background: var(--violet-soft) !important;
-            border: 1px solid var(--violet) !important;
-            color: var(--violet) !important;
-            font-size: clamp(1rem, 4vw, 1.15rem) !important;
-            font-weight: 900 !important;
-            border-radius: 10px !important;
-            width: clamp(2.2rem, 9vw, 2.5rem) !important;
-            height: clamp(2.2rem, 9vw, 2.5rem) !important;
-            min-width: 2.2rem !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-        }}
-
-        /* ---------- قائمة الجوال المنسدلة (تُصمَّم بنفس روح القائمة الجانبية) ---------- */
-        .st-key-mobile_nav_panel {{
+        /* ---------- البطاقة الجانبية الدائمة للجوال — بنفس هوية اللابتوب ----------
+           لا تختفي ولا تنبثق؛ عنصر ثابت داخل تدفق الصفحة (مو position:fixed)
+           عمدًا، حتى لا تتصادم مع شريط Streamlit Cloud العلوي (Fork/GitHub)
+           اللي سبق وسبب مشاكل تراكب مع أي عنصر عائم مثبّت بأعلى الشاشة. */
+        .st-key-mobile_sidebar_card {{
             display: block !important;
+            width: 100%;
+            box-sizing: border-box;
             background: var(--bg-elev);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: clamp(.75rem, 3.5vw, .9rem);
-            margin-bottom: clamp(1rem, 4.5vw, 1.2rem);
-            box-sizing: border-box;
-            animation: fadeIn .2s ease;
+            border-radius: 18px;
+            padding: clamp(1rem, 4.5vw, 1.3rem) clamp(.9rem, 4vw, 1.1rem);
+            margin-bottom: clamp(1rem, 4.5vw, 1.3rem);
+            box-shadow: 0 10px 30px var(--shadow);
         }}
-        .st-key-mobile_nav_panel div[data-testid="stButton"] button {{
-            background: var(--bg) !important;
+        .st-key-mobile_sidebar_card .brand {{
+            font-size: clamp(1.15rem, 5vw, 1.35rem) !important;
+            justify-content: center;
+        }}
+        .st-key-mobile_sidebar_card .brand-sub {{
+            font-size: clamp(.75rem, 3.2vw, .85rem) !important;
+            text-align: center;
+        }}
+        .st-key-mobile_sidebar_card div[data-testid="stButton"] button {{
+            background: var(--bg-elev2) !important;
             color: var(--text) !important;
             border: 1px solid var(--border) !important;
-            border-radius: 10px !important;
-            font-weight: 600 !important;
-            font-size: clamp(.9rem, 3.8vw, 1rem) !important;
-            padding: clamp(.55rem, 2.6vw, .65rem) clamp(.7rem, 3vw, .8rem) !important;
-            margin-bottom: clamp(.4rem, 2vw, .5rem) !important;
-            justify-content: flex-start !important;
-            box-shadow: none !important;
-            width: 100%;
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+            font-size: clamp(.85rem, 3.6vw, .95rem) !important;
+            padding: clamp(.6rem, 2.8vw, .8rem) clamp(.4rem, 2vw, .6rem) !important;
         }}
-        .st-key-mobile_nav_panel .theme-label {{ font-size: clamp(.8rem, 3.4vw, .9rem); margin-bottom: .4rem; }}
+        .st-key-mobile_sidebar_card div[data-testid="stHorizontalBlock"] {{
+            gap: clamp(.5rem, 2.5vw, .7rem) !important;
+            margin-bottom: clamp(.5rem, 2.5vw, .7rem) !important;
+        }}
+        .st-key-mobile_sidebar_card .theme-label {{
+            font-size: clamp(.8rem, 3.4vw, .9rem);
+            text-align: center;
+        }}
+        .st-key-mobile_sidebar_card div[data-testid="stRadio"] > div {{
+            justify-content: center !important;
+        }}
+        .st-key-mobile_sidebar_card .sidebar-stats {{
+            justify-content: center !important;
+        }}
+
+        /* ---------- شبكة عمودين لبطاقتي "اقتراحات المصطلحات" و"إحصائيات سريعة" ----------
+           بدون أي تعديل بالكود البرمجي — إعادة توزيع نفس الأعمدة القائمة عبر
+           CSS فقط (flex-wrap) بحيث تصير 2 في كل صف بدل صف واحد ممتد. */
+        .st-key-suggestions_panel div[data-testid="stHorizontalBlock"],
+        .st-key-stats_panel div[data-testid="stHorizontalBlock"] {{
+            flex-wrap: wrap !important;
+            row-gap: clamp(.5rem, 2.5vw, .7rem) !important;
+        }}
+        .st-key-suggestions_panel div[data-testid="stHorizontalBlock"] > div,
+        .st-key-stats_panel div[data-testid="stHorizontalBlock"] > div {{
+            flex: 0 0 48% !important;
+            width: 48% !important;
+            min-width: 48% !important;
+            box-sizing: border-box !important;
+        }}
 
         /* ---------- عنوان المصطلح والصفحة ---------- */
         .term-hero {{ padding-bottom: clamp(.7rem, 3vw, .9rem); margin-bottom: clamp(.9rem, 4vw, 1.1rem); }}
@@ -1091,31 +1090,25 @@ def render_sidebar():
 
 
 # =====================================================================
-# قائمة الجوال (Burger Menu) — عنصر مخصص كامل مستقل عن القائمة الجانبية
-# الأصلية لـ Streamlit، لأن الأخيرة يصعب التحكم في سلوكها على الجوال عبر
-# CSS فقط. هذا الشريط والقائمة يظهران فقط على الشاشات الصغيرة (media query)،
-# بينما القائمة الجانبية الأصلية تختفي بالكامل على نفس الشاشات الصغيرة.
+# القائمة الجانبية على الجوال — نسخة دائمة الظهور (بدون Hamburger/Toggle)
+# بنفس تصميم الشريط الجانبي في اللابتوب تمامًا (الخلفية، الشعار، الروابط،
+# المظهر، الإحصائيات)، لكن الروابط مرتبة كشبكة عمودين بدل عمود واحد طويل
+# حتى تكون البطاقة مقاربة للمربع بدل مستطيل طويل.
 # =====================================================================
-def render_mobile_topbar():
-    with st.container(key="mobile_topbar"):
-        c1, c2 = st.columns([5, 1])
-        with c1:
-            st.markdown('<div class="mobile-topbar-brand">🖥️ TechWiki</div>', unsafe_allow_html=True)
-        with c2:
-            if st.button("☰", key="mobile_menu_btn"):
-                st.session_state.mobile_nav_open = not st.session_state.mobile_nav_open
-                st.rerun()
+def render_mobile_sidebar_card():
+    with st.container(key="mobile_sidebar_card"):
+        st.markdown('<div class="brand">🖥️ <span>TechWiki</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand-sub">Learn Technical Terms with AI</div>', unsafe_allow_html=True)
+        st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
 
-
-def render_mobile_nav_panel():
-    if not st.session_state.mobile_nav_open:
-        return
-    with st.container(key="mobile_nav_panel"):
-        for key, icon, label in NAV_ITEMS:
-            if st.button(f"{icon}  {label}", key=f"mobilenav_{key}", use_container_width=True):
-                st.session_state.page = key
-                st.session_state.mobile_nav_open = False
-                st.rerun()
+        for i in range(0, len(NAV_ITEMS), 2):
+            pair = NAV_ITEMS[i:i + 2]
+            row_cols = st.columns(2)
+            for col, (key, icon, label) in zip(row_cols, pair):
+                with col:
+                    if st.button(f"{icon}  {label}", key=f"mobilenav_{key}", use_container_width=True):
+                        st.session_state.page = key
+                        st.rerun()
 
         st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
         st.markdown('<div class="theme-label">المظهر</div>', unsafe_allow_html=True)
@@ -1127,9 +1120,13 @@ def render_mobile_nav_panel():
         )
 
         st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
-        if st.button("✕ إغلاق القائمة", key="mobile_nav_close", use_container_width=True):
-            st.session_state.mobile_nav_open = False
-            st.rerun()
+        st.markdown(
+            f"""<div class="sidebar-stats">
+                <div>🔎 {len(st.session_state.history)} عملية بحث</div>
+                <div>⭐ {len(st.session_state.favorites)} عنصر محفوظ</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
 
 
 
@@ -1272,8 +1269,7 @@ def page_settings():
 # التشغيل
 # =====================================================================
 render_sidebar()
-render_mobile_topbar()
-render_mobile_nav_panel()
+render_mobile_sidebar_card()
 
 _PAGES = {
     "home": page_home,
