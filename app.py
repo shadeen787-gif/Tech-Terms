@@ -644,15 +644,16 @@ st.markdown(
     div[data-testid="stToggle"] label p {{ color: var(--text) !important; font-weight:600; }}
 
     /* =====================================================================
-       دعم الجوال والشاشات الصغيرة
-       بعد تجارب متعددة مع position:fixed تعارضت مع شريط Streamlit Cloud
-       العلوي (Fork/GitHub) اللي لا يمكن التحكم فيه من كودنا، الحل الأنظف:
-       نجعل شريط وقائمة الجوال جزءًا طبيعيًا من تدفق الصفحة (مو عائمين)،
-       فما فيه أي احتمال تداخل أو تراكب مع أي عنصر خارج تحكمنا.
+       دعم الجوال والشاشات الصغيرة — كل القواعد هنا محصورة داخل
+       @media (max-width: 768px) فقط، ولا تؤثر إطلاقًا على اللابتوب/التابلت.
+       نستخدم clamp()/vw بدل القيم الثابتة عشان يناسب كل مقاسات الجوالات
+       (320px إلى 768px) بدون transform أو zoom.
        ===================================================================== */
     .st-key-mobile_topbar, .st-key-mobile_nav_panel {{ display: none; }}
 
     @media (max-width: 768px) {{
+        html, body {{ overflow-x: hidden !important; }}
+
         /* إخفاء القائمة الجانبية الأصلية وزر فتحها بالكامل على الجوال */
         section[data-testid="stSidebar"],
         [data-testid="stSidebarCollapsedControl"],
@@ -667,12 +668,14 @@ st.markdown(
             max-width: 100% !important;
             width: 100% !important;
             margin: 0 !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            padding-top: 1.2rem !important;
+            padding-left: clamp(.75rem, 4vw, 1.25rem) !important;
+            padding-right: clamp(.75rem, 4vw, 1.25rem) !important;
+            padding-top: clamp(.9rem, 4vw, 1.2rem) !important;
+            box-sizing: border-box !important;
         }}
+        .block-container * {{ max-width: 100%; }}
 
-        /* الشريط العلوي المخصص + زر البرقر منيو — عنصر عادي بتدفق الصفحة */
+        /* ---------- شريط الجوال العلوي (قائمة جانبية داخل الصفحة) ---------- */
         .st-key-mobile_topbar {{
             display: flex !important;
             align-items: center;
@@ -680,8 +683,9 @@ st.markdown(
             background: var(--bg-elev);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: .7rem .9rem;
-            margin-bottom: 1rem;
+            padding: clamp(.55rem, 2.6vw, .7rem) clamp(.7rem, 3.5vw, .9rem);
+            margin-bottom: clamp(.8rem, 3.5vw, 1rem);
+            box-sizing: border-box;
         }}
         .st-key-mobile_topbar > div[data-testid="stHorizontalBlock"] {{
             display: flex !important;
@@ -689,7 +693,7 @@ st.markdown(
             width: 100%;
         }}
         .mobile-topbar-brand {{
-            font-weight: 900; font-size: 1.05rem; color: var(--text);
+            font-weight: 900; font-size: clamp(.95rem, 4vw, 1.05rem); color: var(--text);
         }}
         .st-key-mobile_topbar div[data-testid="stButton"] {{
             display: flex; justify-content: flex-end;
@@ -698,24 +702,25 @@ st.markdown(
             background: var(--violet-soft) !important;
             border: 1px solid var(--violet) !important;
             color: var(--violet) !important;
-            font-size: 1.15rem !important;
+            font-size: clamp(1rem, 4vw, 1.15rem) !important;
             font-weight: 900 !important;
             border-radius: 10px !important;
-            width: 2.5rem !important;
-            height: 2.5rem !important;
-            min-width: 2.5rem !important;
+            width: clamp(2.2rem, 9vw, 2.5rem) !important;
+            height: clamp(2.2rem, 9vw, 2.5rem) !important;
+            min-width: 2.2rem !important;
             padding: 0 !important;
             line-height: 1 !important;
         }}
 
-        /* قائمة الجوال المنسدلة — بطاقة عادية تظهر داخل تدفق الصفحة */
+        /* ---------- قائمة الجوال المنسدلة (تُصمَّم بنفس روح القائمة الجانبية) ---------- */
         .st-key-mobile_nav_panel {{
             display: block !important;
             background: var(--bg-elev);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: .9rem;
-            margin-bottom: 1.2rem;
+            padding: clamp(.75rem, 3.5vw, .9rem);
+            margin-bottom: clamp(1rem, 4.5vw, 1.2rem);
+            box-sizing: border-box;
             animation: fadeIn .2s ease;
         }}
         .st-key-mobile_nav_panel div[data-testid="stButton"] button {{
@@ -724,21 +729,106 @@ st.markdown(
             border: 1px solid var(--border) !important;
             border-radius: 10px !important;
             font-weight: 600 !important;
-            font-size: 1rem !important;
-            padding: .65rem .8rem !important;
-            margin-bottom: .5rem !important;
+            font-size: clamp(.9rem, 3.8vw, 1rem) !important;
+            padding: clamp(.55rem, 2.6vw, .65rem) clamp(.7rem, 3vw, .8rem) !important;
+            margin-bottom: clamp(.4rem, 2vw, .5rem) !important;
             justify-content: flex-start !important;
             box-shadow: none !important;
+            width: 100%;
         }}
-        .st-key-mobile_nav_panel .theme-label {{ font-size: .9rem; margin-bottom: .4rem; }}
+        .st-key-mobile_nav_panel .theme-label {{ font-size: clamp(.8rem, 3.4vw, .9rem); margin-bottom: .4rem; }}
 
-        .term-hero {{ padding-bottom: .9rem; margin-bottom: 1.1rem; }}
-        .term-title {{ font-size: 1.7rem !important; }}
-        .term-sub {{ font-size: .95rem !important; }}
-        .term-eyebrow {{ font-size: .8rem !important; }}
-        .page-title {{ font-size: 1.4rem !important; }}
-        .page-sub {{ font-size: .9rem !important; }}
-        .stat-box {{ padding: .7rem !important; }}
+        /* ---------- عنوان المصطلح والصفحة ---------- */
+        .term-hero {{ padding-bottom: clamp(.7rem, 3vw, .9rem); margin-bottom: clamp(.9rem, 4vw, 1.1rem); }}
+        .term-title {{ font-size: clamp(1.35rem, 7vw, 1.8rem) !important; line-height: 1.25 !important; }}
+        .term-sub {{ font-size: clamp(.85rem, 3.6vw, .95rem) !important; }}
+        .term-eyebrow {{ font-size: clamp(.7rem, 2.8vw, .8rem) !important; }}
+        .page-title {{ font-size: clamp(1.2rem, 5.5vw, 1.4rem) !important; }}
+        .page-sub {{ font-size: clamp(.8rem, 3.4vw, .9rem) !important; margin-bottom: clamp(.8rem, 3.5vw, 1rem) !important; }}
+        .empty-state {{ padding: clamp(1.1rem, 5vw, 1.5rem) !important; font-size: clamp(.85rem, 3.5vw, .95rem) !important; }}
+
+        /* ---------- مربع البحث ---------- */
+        div[data-testid="stTextInput"] input {{
+            padding: clamp(.65rem, 3vw, .85rem) clamp(2.3rem, 9vw, 2.9rem) clamp(.65rem, 3vw, .85rem) clamp(.8rem, 3.6vw, 1rem) !important;
+            font-size: clamp(.9rem, 3.6vw, 1rem) !important;
+            border-radius: 14px !important;
+        }}
+        div[data-testid="stTextInput"]::after {{
+            top: clamp(1.85rem, 7vw, 2.2rem) !important;
+            right: clamp(.9rem, 3.6vw, 1.1rem) !important;
+            font-size: clamp(1rem, 3.6vw, 1.1rem) !important;
+        }}
+
+        /* ---------- زر اشرح لي ---------- */
+        .st-key-search_btn_wrap div[data-testid="stButton"] button {{
+            padding: clamp(.7rem, 3vw, .85rem) clamp(1rem, 4.5vw, 1.3rem) !important;
+            font-size: clamp(.95rem, 3.8vw, 1.05rem) !important;
+        }}
+
+        /* ---------- أزرار الاقتراحات / المصطلحات ---------- */
+        .st-key-suggestions_panel div[data-testid="stButton"] button,
+        .st-key-terms_grid div[data-testid="stButton"] button {{
+            font-size: clamp(.85rem, 3.6vw, .95rem) !important;
+            padding: clamp(.5rem, 2.4vw, .6rem) clamp(.6rem, 3vw, .75rem) !important;
+        }}
+
+        /* ---------- Accordion (المصطلحات) ---------- */
+        div[data-testid="stExpander"] summary {{
+            font-size: clamp(.95rem, 4vw, 1.05rem) !important;
+            padding: clamp(.65rem, 3vw, .8rem) clamp(.8rem, 3.6vw, 1rem) !important;
+        }}
+        div[data-testid="stExpanderDetails"] {{
+            padding: clamp(.7rem, 3vw, .85rem) clamp(.75rem, 3.4vw, .9rem) !important;
+        }}
+
+        /* ---------- اللوحات العامة (نتيجة الشرح / السجل / المفضلة / الإحصائيات) ---------- */
+        .st-key-result_panel, .st-key-suggestions_panel, .st-key-stats_panel, .st-key-settings_panel {{
+            padding: clamp(1rem, 4.5vw, 1.3rem) clamp(.85rem, 4vw, 1.1rem) !important;
+            margin-top: clamp(.85rem, 3.6vw, 1.1rem) !important;
+            border-radius: 16px !important;
+            box-sizing: border-box !important;
+        }}
+        .panel-title {{ font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; margin-bottom: .7rem !important; }}
+        .result-head {{ font-size: clamp(1.2rem, 5.2vw, 1.4rem) !important; margin-bottom: .8rem !important; }}
+
+        /* ---------- أقسام النتيجة ---------- */
+        .sec-num {{
+            width: clamp(30px, 8vw, 36px) !important; height: clamp(30px, 8vw, 36px) !important;
+            font-size: clamp(.85rem, 3.6vw, 1rem) !important;
+        }}
+        .sec-title {{ font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; }}
+        .sec-divider {{ margin: clamp(.7rem, 3vw, .95rem) 0 !important; }}
+        .st-key-result_panel p, .st-key-result_panel li {{
+            font-size: clamp(.9rem, 3.8vw, 1rem) !important;
+            line-height: 1.85 !important;
+        }}
+
+        /* ---------- بلوك الكود — قابل للتمرير الأفقي بدل ما يكسر الصفحة ---------- */
+        .code-tab {{ padding: clamp(.4rem, 2vw, .55rem) clamp(.6rem, 3vw, .9rem) !important; }}
+        .code-lang {{ font-size: clamp(.68rem, 2.8vw, .78rem) !important; }}
+        div[data-testid="stCode"] {{
+            overflow-x: auto !important;
+            max-width: 100% !important;
+            -webkit-overflow-scrolling: touch;
+        }}
+        div[data-testid="stCode"] pre, div[data-testid="stCode"] code {{
+            font-size: clamp(.78rem, 3.2vw, .88rem) !important;
+            white-space: pre !important;
+        }}
+
+        /* ---------- الصور — تتقلص مع الشاشة دائمًا ---------- */
+        .block-container img {{ max-width: 100% !important; height: auto !important; }}
+
+        /* ---------- إحصائيات ---------- */
+        .stat-box {{ padding: clamp(.6rem, 3vw, .85rem) clamp(.35rem, 2vw, .55rem) !important; border-radius: 12px !important; }}
+        .stat-num {{ font-size: clamp(1.3rem, 6vw, 1.7rem) !important; }}
+        .stat-num-sm {{ font-size: clamp(.85rem, 3.6vw, 1rem) !important; }}
+        .stat-label {{ font-size: clamp(.72rem, 3vw, .82rem) !important; }}
+
+        /* ---------- السجل / المفضلة ---------- */
+        .hist-term, .fav-head {{ font-size: clamp(.9rem, 3.8vw, 1rem) !important; }}
+        .hist-time {{ font-size: clamp(.68rem, 2.8vw, .78rem) !important; }}
+        .fav-term {{ font-size: clamp(.78rem, 3.2vw, .85rem) !important; }}
     }}
     </style>
 
