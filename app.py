@@ -707,8 +707,15 @@ st.markdown(
             padding: clamp(.6rem, 2.8vw, .8rem) clamp(.4rem, 2vw, .6rem) !important;
         }}
         .st-key-mobile_sidebar_card div[data-testid="stHorizontalBlock"] {{
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
             gap: clamp(.5rem, 2.5vw, .7rem) !important;
             margin-bottom: clamp(.5rem, 2.5vw, .7rem) !important;
+        }}
+        .st-key-mobile_sidebar_card div[data-testid="stHorizontalBlock"] > div {{
+            flex: 1 1 0 !important;
+            width: auto !important;
+            min-width: 0 !important;
         }}
         .st-key-mobile_sidebar_card .theme-label {{
             font-size: clamp(.8rem, 3.4vw, .9rem);
@@ -722,18 +729,23 @@ st.markdown(
         }}
 
         /* ---------- شبكة عمودين لبطاقتي "اقتراحات المصطلحات" و"إحصائيات سريعة" ----------
-           بدون أي تعديل بالكود البرمجي — إعادة توزيع نفس الأعمدة القائمة عبر
-           CSS فقط (flex-wrap) بحيث تصير 2 في كل صف بدل صف واحد ممتد. */
+           السبب الحقيقي لعدم ظهور الشبكة سابقًا: Streamlit نفسه يفرض
+           flex-direction: column تلقائيًا على div[data-testid="stHorizontalBlock"]
+           عند الشاشات الضيقة (سلوك مدمج فيه)، فكان يُبطل flex-wrap بالكامل مهما
+           كتبنا. الإصلاح: نجبر flex-direction: row صراحة هنا فوق سلوك Streamlit
+           الافتراضي، وبعدها يعمل flex-wrap بشكل صحيح. */
         .st-key-suggestions_panel div[data-testid="stHorizontalBlock"],
         .st-key-stats_panel div[data-testid="stHorizontalBlock"] {{
+            flex-direction: row !important;
             flex-wrap: wrap !important;
             row-gap: clamp(.5rem, 2.5vw, .7rem) !important;
+            column-gap: clamp(.5rem, 2.5vw, .7rem) !important;
         }}
         .st-key-suggestions_panel div[data-testid="stHorizontalBlock"] > div,
         .st-key-stats_panel div[data-testid="stHorizontalBlock"] > div {{
-            flex: 0 0 48% !important;
-            width: 48% !important;
-            min-width: 48% !important;
+            flex: 0 0 47% !important;
+            width: 47% !important;
+            min-width: 47% !important;
             box-sizing: border-box !important;
         }}
 
