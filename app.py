@@ -433,26 +433,60 @@ st.markdown(
     }}
 
     /* ---------- مربع البحث ---------- */
-    div[data-testid="stTextInput"] {{ position: relative; }}
+    div[data-testid="stTextInput"] {{ position: relative; padding-bottom: 1.4rem; box-sizing: border-box; }}
     div[data-testid="stTextInput"] label {{ color: var(--text-muted) !important; font-size:.9rem; }}
+    div[data-testid="stTextInput"] > div {{ position: relative; width: 100%; box-sizing: border-box; }}
     div[data-testid="stTextInput"] input {{
         background-color: var(--input-bg, {T['input_bg']}) !important;
         backdrop-filter: blur(10px);
         color: var(--text) !important;
         border: 1px solid var(--border) !important;
         border-radius: 18px !important;
-        padding: 1.15rem 3.2rem 1.15rem 1.3rem !important;
+        padding: 1.15rem 3.4rem 1.15rem 1.3rem !important;
         font-family:'JetBrains Mono',monospace !important;
         font-size: 1.2rem !important;
         caret-color: var(--violet) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
         transition: border-color .2s ease, box-shadow .2s ease;
     }}
     div[data-testid="stTextInput"] input:focus {{
         border-color: var(--violet) !important;
         box-shadow: 0 0 0 4px var(--violet-soft) !important;
     }}
+    /* أيقونة البحث الزخرفية: تُترك مساحة كافية لها ضمن padding الحقل نفسه
+       (padding-right أعلاه) بحيث لا يصل إليها نص المستخدم المكتوب مطلقًا،
+       وتُرسم فوق الحقل فقط بلا أي تفاعل (pointer-events: none). */
     div[data-testid="stTextInput"]::after {{
-        content: "🔍"; position:absolute; top: 2.55rem; right: 1.2rem; font-size:1.15rem; opacity:.55; pointer-events:none;
+        content: "🔍"; position:absolute; top: 2.55rem; right: 1.2rem; font-size:1.15rem; opacity:.55; pointer-events:none; z-index: 2;
+    }}
+    /* تلميح Streamlit الأصلي "Press Enter to apply": هذا العنصر يأتي من
+       Streamlit نفسه (لا من كودنا)، وكان يُرسم فوق نص الإدخال والأيقونة
+       مسبّبًا التداخل. الحل الجذري هو نقله بالكامل خارج صندوق الحقل إلى
+       سطر مستقل أسفله (لا فوقه ولا فوق الأيقونة)، مع حجز مساحة كافية له
+       عبر padding-bottom في الحاوية الأم أعلاه، بدل إخفائه بالقص/overflow. */
+    div[data-testid="stTextInput"] div[data-testid="InputInstructions"] {{
+        position: absolute !important;
+        top: 100% !important;
+        bottom: auto !important;
+        right: .2rem !important;
+        left: auto !important;
+        margin-top: .3rem !important;
+        max-width: calc(100% - .4rem);
+        text-align: right !important;
+        direction: rtl !important;
+        font-family: 'Tajawal', sans-serif !important;
+        font-size: .72rem !important;
+        color: var(--text-muted) !important;
+        opacity: .85 !important;
+        white-space: normal !important;
+        pointer-events: none;
+        z-index: 1;
+    }}
+    div[data-testid="stTextInput"] div[data-testid="InputInstructions"] * {{
+        color: inherit !important;
+        font-size: inherit !important;
+        visibility: visible !important;
     }}
 
     /* ---------- زر اشرح لي ---------- */
@@ -702,8 +736,11 @@ st.markdown(
         .empty-state {{ padding: clamp(1rem, 4.5vw, 1.3rem) !important; font-size: clamp(.8rem, 3.4vw, .9rem) !important; }}
 
         /* ---------- مربع البحث ---------- */
+        div[data-testid="stTextInput"] {{
+            padding-bottom: clamp(1.3rem, 6vw, 1.6rem) !important;
+        }}
         div[data-testid="stTextInput"] input {{
-            padding: clamp(.6rem, 2.8vw, .8rem) clamp(2.2rem, 8vw, 2.7rem) clamp(.6rem, 2.8vw, .8rem) clamp(.7rem, 3.4vw, .9rem) !important;
+            padding: clamp(.6rem, 2.8vw, .8rem) clamp(2.3rem, 9vw, 2.9rem) clamp(.6rem, 2.8vw, .8rem) clamp(.7rem, 3.4vw, .9rem) !important;
             font-size: clamp(.82rem, 3.2vw, .95rem) !important;
             border-radius: 14px !important;
         }}
@@ -711,6 +748,11 @@ st.markdown(
             top: clamp(1.75rem, 6.5vw, 2.05rem) !important;
             right: clamp(.8rem, 3.2vw, 1rem) !important;
             font-size: clamp(.9rem, 3.2vw, 1rem) !important;
+        }}
+        div[data-testid="stTextInput"] div[data-testid="InputInstructions"] {{
+            font-size: clamp(.62rem, 2.8vw, .7rem) !important;
+            margin-top: clamp(.2rem, 1.2vw, .3rem) !important;
+            right: .15rem !important;
         }}
 
         /* ---------- زر اشرح لي ---------- */
