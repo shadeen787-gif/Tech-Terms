@@ -905,9 +905,9 @@ LOADING_HTML = """
 <div class="ai-loading">
     <div class="ai-loading-icon">🧠</div>
     <div class="ai-loading-text">
-        <span> تحليل المصطلح...</span>
-        <span> البحث في المعرفة...</span>
-        <span> توليد الشرح...</span>
+        <span>🧠 تحليل المصطلح...</span>
+        <span>📚 البحث في المعرفة...</span>
+        <span>⚡ توليد الشرح...</span>
         <span>✨ تنسيق الإجابة...</span>
     </div>
 </div>
@@ -1056,11 +1056,11 @@ def render_result(term, text):
     with c_bm:
         already_saved = any(f["term"] == term for f in st.session_state.favorites)
         if st.button("🔖" if not already_saved else "✅", key=f"bm_full_{term}",
-                     help="حفظ الشرح  في المفضلة" if not already_saved else "محفوظ بالفعل"):
+                     help="حفظ الشرح كاملاً في المفضلة" if not already_saved else "محفوظ بالفعل"):
             if not already_saved:
                 st.session_state.favorites.insert(0, {"term": term, "text": text})
                 save_favorites_to_local_storage()
-                st.toast("⭐ تم حفظ الشرح  في المفضلة")
+                st.toast("⭐ تم حفظ الشرح كاملاً في المفضلة")
     render_sections_only(text)
 
 
@@ -1070,7 +1070,7 @@ def render_result(term, text):
 def render_sidebar():
     with st.sidebar:
         st.markdown('<div class="brand">🖥️ <span>TechWiki</span></div>', unsafe_allow_html=True)
-        st.markdown('<div class="brand-sub">تعلّم المصطلحات التقنية مع الذكاء الاصطناعي</div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand-sub">Learn Technical Terms with AI</div>', unsafe_allow_html=True)
         st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
 
         for key, icon, label in NAV_ITEMS:
@@ -1130,7 +1130,7 @@ def page_home():
             render_result(st.session_state.current_result["term"], st.session_state.current_result["text"])
 
     with st.container(key="suggestions_panel"):
-        st.markdown('<div class="panel-title"> اقتراحات للمصطلحات</div>', unsafe_allow_html=True)
+        st.markdown('<div class="panel-title">💡 اقتراحات للمصطلحات</div>', unsafe_allow_html=True)
         cols = st.columns(3)
         for i, t in enumerate(SUGGESTIONS):
             with cols[i % 3]:
@@ -1167,7 +1167,7 @@ def page_history():
 
 def page_favorites():
     st.markdown('<div class="page-title">⭐ المفضلة</div>', unsafe_allow_html=True)
-    st.markdown('<div class="page-sub">مصطلحاتك المحفوظة</div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-sub">الشروحات الكاملة التي تم حفظها (التعريف، المثال، النظرة السريعة، والاستخدام)</div>', unsafe_allow_html=True)
     if not st.session_state.favorites:
         st.markdown('<div class="empty-state">لا توجد عناصر محفوظة بعد.</div>', unsafe_allow_html=True)
         return
@@ -1226,7 +1226,7 @@ def page_settings():
         st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
         if LOCAL_STORAGE_OK:
             st.markdown(
-                '<div class="hist-time">💾 السجل والمفضلة محفوظان في متصفحك   و يمكنك الرجوع اليها  لاحقًا.</div>',
+                '<div class="hist-time">💾 السجل والمفضلة محفوظان في متصفحك (Local Storage) ويبقيان بعد التحديث أو إغلاق الصفحة والرجوع لاحقًا.</div>',
                 unsafe_allow_html=True,
             )
         else:
