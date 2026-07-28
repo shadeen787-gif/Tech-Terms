@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 from groq import Groq
 import os
 import re
@@ -382,11 +381,21 @@ st.markdown(
     @keyframes slideUpFade {{ from {{ opacity:0; transform: translateY(22px); }} to {{ opacity:1; transform: translateY(0); }} }}
 
     /* ---------- إرساء القائمة الجانبية على اليمين (RTL) ----------
-       تم التراجع مؤقتًا عن محاولتي CSS السابقتين (row-reverse ثم
-       position:fixed) لأن كلتيهما إما لم تؤثر أو سبّبت كسرًا بصريًا —
-       ما يعني أن البنية الفعلية للصفحة (DOM) تختلف عمّا افترضناه.
-       رجعنا لحالة مستقرة هنا ريثما نحصل على معلومة دقيقة عن البنية
-       عبر أداة التشخيص أسفل الشريط الجانبي. */
+       أكّدت أداة التشخيص أن stAppViewContainer فعلاً flex + direction:rtl،
+       لكن الشريط الجانبي ما زال يظهر يسارًا — أي أن Streamlit نفسه يضبط له
+       ترتيب (order) داخلي يتجاوز direction/flex-direction. الحل الحاسم:
+       نفرض order على الشريط نفسه مباشرة (بدل التلاعب بـ flex-direction)،
+       فهذا يتجاوز أي ترتيب افتراضي مهما كان مصدره. */
+    [data-testid="stAppViewContainer"] {{
+        display: flex !important;
+    }}
+    section[data-testid="stSidebar"] {{
+        order: -9999 !important;
+        position: relative !important;
+    }}
+    [data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {{
+        order: 9999 !important;
+    }}
 
     /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"] {{
@@ -1267,65 +1276,9 @@ def page_settings():
 
 
 # =====================================================================
-# 🔧 أداة تشخيص مؤقتة — نحذفها بعد ما ناخذ المعلومة المطلوبة
-# تطبع البنية الحقيقية (DOM) حول القائمة الجانبية: كل عنصر أب، مع
-# display / flex-direction / position / direction الفعلية له، حتى نعرف
-# بالضبط أي عنصر هو الحاوية الحقيقية بدل ما نخمّن ونكسر التصميم.
-# =====================================================================
-def render_sidebar_diagnostic():
-    with st.expander("🔧 تشخيص مؤقت لبنية الصفحة (اضغطي هنا وابعتيلي لقطة شاشة لهذا الصندوق)", expanded=True):
-        components.html(
-            """
-            <div id="twiki-diag" style="font-family:monospace;font-size:12px;
-                white-space:pre-wrap;color:#0f0;background:#111;padding:10px;
-                border-radius:8px;direction:ltr;text-align:left;line-height:1.5;">
-                جارِ الفحص...
-            </div>
-            <script>
-            function describe(el) {
-                if (!el) return "null";
-                const cs = window.parent.getComputedStyle(el);
-                const tid = el.getAttribute ? el.getAttribute("data-testid") : null;
-                const cls = (el.className || "").toString().slice(0, 70);
-                return "<" + el.tagName.toLowerCase() + ">"
-                    + "  testid=" + tid
-                    + "  class=" + cls
-                    + "\\n    display=" + cs.display
-                    + "  flexDirection=" + cs.flexDirection
-                    + "  position=" + cs.position
-                    + "  direction=" + cs.direction
-                    + "  width=" + cs.width;
-            }
-            try {
-                const doc = window.parent.document;
-                const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
-                let lines = [];
-                if (!sidebar) {
-                    lines.push("لم يتم العثور على section[data-testid=stSidebar] !");
-                } else {
-                    let el = sidebar;
-                    let depth = 0;
-                    while (el && depth < 8) {
-                        lines.push((depth === 0 ? "[stSidebar نفسها] " : "[أب رقم " + depth + "] ") + describe(el));
-                        el = el.parentElement;
-                        depth++;
-                    }
-                }
-                document.getElementById("twiki-diag").innerText = lines.join("\\n\\n");
-            } catch (e) {
-                document.getElementById("twiki-diag").innerText = "خطأ: " + e.message;
-            }
-            </script>
-            """,
-            height=520,
-        )
-
-
-# =====================================================================
 # التشغيل
 # =====================================================================
 render_sidebar()
-render_sidebar_diagnostic()
 
 _PAGES = {
     "home": page_home,
