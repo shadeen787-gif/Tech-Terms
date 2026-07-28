@@ -301,58 +301,9 @@ st.markdown(
     [data-testid="stHeader"] {{ background: transparent !important; }}
     #MainMenu, footer {{ visibility: hidden; }}
 
-    /* ---------- زر إظهار القائمة الجانبية بعد إخفائها (☰) ---------- */
-    /* نثبّت الزر بموضع مطلق (position: fixed) بدل الاعتماد فقط على
-       display/opacity/visibility، لأن هذه الخصائص لا تفيد إن كان العنصر
-       الأب نفسه منكمشًا لعرض صفر أو مقصوصًا بـ overflow:hidden.
-       نضعه أعلى اليمين (بدل اليسار) لأن التطبيق RTL. */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {{
-        visibility: visible !important;
-        display: flex !important;
-        opacity: 1 !important;
-        position: fixed !important;
-        top: 0.6rem !important;
-        right: 0.6rem !important;
-        left: auto !important;
-        width: auto !important;
-        height: auto !important;
-        overflow: visible !important;
-        clip: auto !important;
-        clip-path: none !important;
-        pointer-events: auto !important;
-        z-index: 999999 !important;
-    }}
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="collapsedControl"] button {{
-        background: linear-gradient(135deg, var(--violet), var(--accent)) !important;
-        border: 2px solid var(--violet) !important;
-        border-radius: 12px !important;
-        box-shadow: 0 0 20px var(--violet-glow) !important;
-        width: 3rem !important;
-        height: 3rem !important;
-        min-width: 3rem !important;
-        min-height: 3rem !important;
-        padding: 0 !important;
-        pointer-events: auto !important;
-    }}
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {{
-        width: 1.9rem !important;
-        height: 1.9rem !important;
-    }}
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] path,
-    [data-testid="collapsedControl"] path {{
-        fill: #ffffff !important;
-        color: #ffffff !important;
-    }}
-    /* بعض إصدارات Streamlit تُبقي الحاوية الأصلية للسايدبار بعرض صفر مع
-       overflow:hidden حتى بعد إخفائها، فتقصّ أي زر داخلها معها */
-    section[data-testid="stSidebar"][aria-expanded="false"] {{
-        overflow: visible !important;
-    }}
+    /* ملاحظة: كل تنسيقات أزرار طي/فتح القائمة الجانبية (للوضعين الفاتح
+       والداكن) وتخطيط الشريط للجوال/سطح المكتب موجودة بكتلة واحدة نظيفة
+       في نهاية الملف — راجعها هناك بدل البحث في أكثر من مكان. */
     * {{ direction: rtl; text-align: right; }}
 
     .block-container {{ padding-top: 2.2rem; max-width: min(900px, 92vw); width: 100%; margin: 0 auto; position: relative; z-index: 1; }}
@@ -1246,78 +1197,122 @@ _PAGES = {
 _PAGES.get(st.session_state.page, page_home)()
 
 # =====================================================================
-# ⬇️ حقن متأخر لقواعد إرساء الشريط الجانبي على اليمين ⬇️
-# السبب الحقيقي وراء تجاهل قواعد order/flex السابقة: كتلة الـ <style>
-# الرئيسية تُحقن مبكرًا (أول السكربت)، بينما Streamlit يولّد CSS الخاص
-# بالشريط الجانبي وقت رندره الفعلي (render_sidebar، قرب نهاية السكربت) —
-# فتُضاف أنماط Streamlit إلى <head> بعد أنماطنا. وعند تساوي القوة
-# التخصيصية (specificity) واستخدام !important من الطرفين، الأنماط
-# الأحدث في ترتيب المستند هي التي تفوز — فتغلب Streamlit علينا دائمًا.
-# الحل: نحقن نسخة من نفس القواعد هنا، بعد رندر كل شيء (الشريط الجانبي
-# وكل الصفحات)، فتكون أنماطنا هي الأحدث فعليًا وتفوز حتمًا. كما نرفع قوة
-# الـ selector بتكرار الخاصية لضمان الفوز حتى لو تساوى ترتيب الحقن.
+# ⬇️ الشريط الجانبي — تطبيق واحد لكل من سطح المكتب والجوال، بلا تكرار ⬇️
+# محقونة متأخرًا عمدًا (بعد render_sidebar وكل الصفحات) لأن Streamlit يولّد
+# CSS الخاص بالشريط وقت رندره الفعلي، فتُضاف أنماطه بعد أنماطنا لو حقنّاها
+# مبكرًا — وعند تعادل !important يفوز الأحدث في ترتيب المستند. حقنها هنا
+# يضمن أنها الأحدث فعليًا.
 # =====================================================================
 st.markdown(
     """
     <style>
-    /* ---------- سطح المكتب: الشريط الجانبي مرساة دائمًا داخل التخطيط ---------- */
+    /* ---------- عناصر التحكم بالطي/الفتح (☰ / «) — لكلا الوضعين ---------- */
+    /* stSidebarCollapsedControl: زر إعادة الفتح (يظهر وقت الطي).
+       button[kind="header"]: سهم الطي داخل الشريط نفسه وقت الفتح.
+       نلوّن الاثنين بألوان الثيم (تتكيّف تلقائيًا فاتح/داكن) بدل ألوان
+       ثابتة، لضمان تباين كافٍ في الوضعين. */
+    [data-testid="stSidebarCollapsedControl"],
+    button[kind="header"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button,
+    button[kind="header"] {
+        background: var(--bg-elev2) !important;
+        border: 1.5px solid var(--violet) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,.18) !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    button[kind="header"] svg,
+    [data-testid="stSidebarCollapsedControl"] path,
+    button[kind="header"] path {
+        fill: var(--text) !important;
+        color: var(--text) !important;
+        stroke: var(--text) !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] {
+        position: fixed !important;
+        top: 0.6rem !important;
+        right: 0.6rem !important;
+        left: auto !important;
+    }
+
+    /* =================== سطح المكتب (min-width: 769px) ===================
+       الشريط جزء دائم من تخطيط flex، مرسى على اليمين عبر order. */
     @media (min-width: 769px) {
-        [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] {
+        [data-testid="stAppViewContainer"] {
             display: flex !important;
             flex-wrap: nowrap !important;
         }
-        section[data-testid="stSidebar"][data-testid="stSidebar"] {
+        section[data-testid="stSidebar"] {
             order: -9999 !important;
             position: relative !important;
+            flex: 0 0 auto !important;
             left: auto !important;
             right: auto !important;
             margin: 0 !important;
             transform: none !important;
-            flex: 0 0 auto !important;
         }
-        [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
+        [data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
             order: 9999 !important;
             position: relative !important;
-            inset: auto !important;
-            left: auto !important;
-            right: auto !important;
-            top: auto !important;
             flex: 1 1 0% !important;
             width: auto !important;
-            max-width: 100% !important;
             min-width: 0 !important;
         }
     }
 
-    /* ---------- الجوال: الشريط مخفي افتراضيًا، ويظهر كطبقة منبثقة من اليمين ---------- */
+    /* =================== الجوال (max-width: 768px) ===================
+       الشريط لا يشارك إطلاقًا في تخطيط flex الرئيسي. مطويًا = صفر مساحة
+       تمامًا. مفتوحًا = طبقة منبثقة (position:fixed) من اليمين، لا تُزيح
+       ولا تُصغّر المحتوى الرئيسي إطلاقًا. */
     @media (max-width: 768px) {
-        /* زر الهامبرغر (☰) لإظهار الشريط — أعلى يمين الشاشة */
-        [data-testid="stSidebarCollapsedControl"][data-testid="stSidebarCollapsedControl"] {
-            top: 0.6rem !important;
-            right: 0.6rem !important;
-            left: auto !important;
+        /* لا order ولا flex هنا إطلاقًا — الشريط خارج حسبة flex كليًا */
+        [data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
         }
-        /* عند الفتح: تراكب حقيقي فوق المحتوى، لا يزيحه ولا يحجز مساحة منه */
-        section[data-testid="stSidebar"][data-testid="stSidebar"][aria-expanded="true"] {
+
+        /* مطويًا: صفر مساحة فعليًا، لا يظهر كشريط ضيق على أي جهة */
+        section[data-testid="stSidebar"][aria-expanded="false"] {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            flex: 0 0 0 !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+        }
+        section[data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
+            width: 0 !important;
+        }
+
+        /* مفتوحًا: تراكب حقيقي من اليمين (RTL)، فوق المحتوى بدون إزاحته */
+        section[data-testid="stSidebar"][aria-expanded="true"] {
             position: fixed !important;
             top: 0 !important;
             right: 0 !important;
             left: auto !important;
             height: 100vh !important;
-            width: min(82vw, 300px) !important;
-            max-width: min(82vw, 300px) !important;
+            width: min(75vw, 320px) !important;
+            max-width: min(75vw, 320px) !important;
             margin: 0 !important;
             transform: none !important;
             z-index: 999600 !important;
             box-shadow: -14px 0 46px rgba(0,0,0,.55) !important;
             overflow-y: auto !important;
         }
-        section[data-testid="stSidebar"][data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+        section[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
             width: 100% !important;
             max-width: 100% !important;
             margin-left: 0 !important;
         }
-        /* طبقة تعتيم خلف الشريط عند فتحه — تعطي إحساس نافذة منبثقة حقيقية */
+
+        /* طبقة تعتيم خلف الشريط عند فتحه */
         [data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="true"])::before {
             content: "";
             position: fixed;
@@ -1333,13 +1328,9 @@ st.markdown(
 )
 
 # =====================================================================
-# طبقة شفافة حقيقية (لا CSS وهمي) خلف الشريط الجانبي عند فتحه على الجوال:
-# الضغط عليها يغلق الشريط — هذا ما لا يمكن لـ CSS وحده فعله (يحتاج JS
-# لأنه يجب أن "يضغط" فعليًا على زر الطي الأصلي في Streamlit كي تتحدث
-# حالة التطبيق الداخلية، لا مجرد إخفاء بصري). أفضل تخمين متاح لزر الطي
-# الأصلي هو أول <button> داخل الشريط نفسه (وهو ما لاحظناه ظاهرًا دومًا
-# في كل اللقطات كسهم "«" أعلى الشريط) — إن لم ينجح، سنحتاج جولة تشخيص
-# أخرى لمعرفة الـ selector الدقيق.
+# طبقة شفافة حقيقية خلف الشريط عند فتحه على الجوال — الضغط عليها يغلق
+# الشريط، عبر محاكاة ضغط زر الطي الأصلي (button[kind="header"]) بدل مجرد
+# إخفاء بصري، كي تتحدث حالة Streamlit الداخلية فعليًا.
 # =====================================================================
 components.html(
     """
@@ -1356,7 +1347,9 @@ components.html(
                 bd.addEventListener('click', function () {
                     const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
                     if (sidebar && sidebar.getAttribute('aria-expanded') === 'true') {
-                        const closeBtn = sidebar.querySelector('button');
+                        const closeBtn =
+                            sidebar.querySelector('button[kind="header"]') ||
+                            sidebar.querySelector('button');
                         if (closeBtn) closeBtn.click();
                     }
                 });
