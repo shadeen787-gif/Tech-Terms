@@ -380,6 +380,32 @@ st.markdown(
     @keyframes fadeIn {{ from {{ opacity:0; transform: translateY(-8px); }} to {{ opacity:1; transform: translateY(0); }} }}
     @keyframes slideUpFade {{ from {{ opacity:0; transform: translateY(22px); }} to {{ opacity:1; transform: translateY(0); }} }}
 
+    /* ---------- إرساء القائمة الجانبية على اليمين (RTL) عبر Flexbox ----------
+       نفرض flex-direction: row-reverse صراحةً على حاوية التطبيق بدل الاعتماد
+       على وراثة direction:rtl (التي قد لا تنعكس فعليًا حسب إصدار Streamlit).
+       نُلغي direction الموروث هنا فقط (ltr) كي يصبح row-reverse حتميًا،
+       ثم نُعيد rtl داخل كل من القائمة الجانبية والمحتوى الرئيسي لعرض نصوصهما. */
+    [data-testid="stAppViewContainer"] {{
+        display: flex !important;
+        direction: ltr !important;
+        flex-direction: row-reverse !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }}
+    /* القائمة الجانبية يجب ألا تكون position:fixed أبدًا — هذا يضمن أنها
+       عنصر flex عادي يحجز عرضه الخاص ضمن التخطيط، فلا يتراكب مع المحتوى. */
+    section[data-testid="stSidebar"] {{
+        position: relative !important;
+        flex: 0 0 auto !important;
+        direction: rtl;
+    }}
+    [data-testid="stMain"],
+    [data-testid="stAppViewContainer"] > .main {{
+        direction: rtl;
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+    }}
+
     /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, var(--bg-elev), var(--bg)) !important;
@@ -402,10 +428,43 @@ st.markdown(
         font-weight: 600 !important;
         font-family: 'Tajawal', sans-serif !important;
         font-size: 1.1rem !important;
+        display: flex !important;
+        align-items: center !important;
         justify-content: flex-start !important;
         padding: .75rem .9rem !important;
         box-shadow: none !important;
         transition: all .2s ease;
+        width: 100% !important;
+    }}
+    /* عمود العنصر داخل الزر (أيقونة + نص) — نفس تخطيط اللابتوب تمامًا،
+       فقط نغيّر المقاسات بالإعلام (media query) لا البنية. */
+    section[data-testid="stSidebar"] div[data-testid="stButton"] button > div[data-testid="stMarkdownContainer"] {{
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: .65rem !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }}
+    /* الأيقونة: عرض ثابت دائمًا كي تتحاذى كل الأسطر رأسيًا مع بعضها */
+    section[data-testid="stSidebar"] div[data-testid="stButton"] button [data-testid^="stIcon"] {{
+        flex: 0 0 auto !important;
+        width: 1.5rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.15rem !important;
+        line-height: 1 !important;
+    }}
+    /* النص: يتمدد في المساحة المتبقية، بدون التفاف، ومحاذاة رأسية للوسط */
+    section[data-testid="stSidebar"] div[data-testid="stButton"] button p {{
+        flex: 1 1 auto !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        text-align: right !important;
+        line-height: 1.2 !important;
     }}
     section[data-testid="stSidebar"] div[data-testid="stButton"] button:hover {{
         background: var(--violet-soft) !important;
@@ -671,21 +730,30 @@ st.markdown(
             padding: clamp(.6rem, 3vw, .9rem) clamp(.35rem, 2vw, .5rem) !important;
         }}
         section[data-testid="stSidebar"] .brand {{
-            font-size: clamp(.68rem, 3vw, .78rem) !important;
-            flex-direction: column !important;
-            gap: .1rem !important;
-            text-align: center;
-            justify-content: center;
+            font-size: clamp(.66rem, 2.8vw, .78rem) !important;
+            flex-direction: row !important;
+            gap: .35rem !important;
+            justify-content: flex-start !important;
+            text-align: right;
+            white-space: nowrap !important;
         }}
         section[data-testid="stSidebar"] .brand-sub {{
             display: none;
         }}
+        /* نفس بنية زر اللابتوب (flex: أيقونة بعرض ثابت + نص بلا التفاف)،
+           فقط بمقاسات أصغر تناسب العرض الضيق — لا إعادة تصميم. */
         section[data-testid="stSidebar"] div[data-testid="stButton"] button {{
+            padding: clamp(.5rem, 2.4vw, .65rem) clamp(.4rem, 1.6vw, .55rem) !important;
+        }}
+        section[data-testid="stSidebar"] div[data-testid="stButton"] button > div[data-testid="stMarkdownContainer"] {{
+            gap: clamp(.3rem, 1.4vw, .45rem) !important;
+        }}
+        section[data-testid="stSidebar"] div[data-testid="stButton"] button [data-testid^="stIcon"] {{
+            width: clamp(1.1rem, 4.5vw, 1.3rem) !important;
+            font-size: clamp(.85rem, 3.4vw, 1rem) !important;
+        }}
+        section[data-testid="stSidebar"] div[data-testid="stButton"] button p {{
             font-size: clamp(.62rem, 2.8vw, .72rem) !important;
-            padding: clamp(.4rem, 2vw, .55rem) clamp(.15rem, 1vw, .3rem) !important;
-            line-height: 1.2 !important;
-            white-space: normal !important;
-            word-break: break-word !important;
         }}
         section[data-testid="stSidebar"] .theme-label {{
             font-size: clamp(.6rem, 2.6vw, .7rem) !important;
@@ -1058,7 +1126,7 @@ def render_sidebar():
 
         for key, icon, label in NAV_ITEMS:
             with st.container(key=f"navwrap_{key}"):
-                if st.button(f"{icon}  {label}", key=f"navbtn_{key}", use_container_width=True):
+                if st.button(label, icon=icon, key=f"navbtn_{key}", use_container_width=True):
                     st.session_state.page = key
                     st.rerun()
 
