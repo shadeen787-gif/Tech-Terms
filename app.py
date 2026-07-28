@@ -380,30 +380,39 @@ st.markdown(
     @keyframes fadeIn {{ from {{ opacity:0; transform: translateY(-8px); }} to {{ opacity:1; transform: translateY(0); }} }}
     @keyframes slideUpFade {{ from {{ opacity:0; transform: translateY(22px); }} to {{ opacity:1; transform: translateY(0); }} }}
 
-    /* ---------- إرساء القائمة الجانبية على اليمين (RTL) عبر Flexbox ----------
-       نفرض flex-direction: row-reverse صراحةً على حاوية التطبيق بدل الاعتماد
-       على وراثة direction:rtl (التي قد لا تنعكس فعليًا حسب إصدار Streamlit).
-       نُلغي direction الموروث هنا فقط (ltr) كي يصبح row-reverse حتميًا،
-       ثم نُعيد rtl داخل كل من القائمة الجانبية والمحتوى الرئيسي لعرض نصوصهما. */
-    [data-testid="stAppViewContainer"] {{
-        display: flex !important;
-        direction: ltr !important;
-        flex-direction: row-reverse !important;
-        align-items: stretch !important;
-        width: 100% !important;
+    /* ---------- إرساء القائمة الجانبية على اليمين (RTL) ----------
+       المحاولة السابقة (flex-direction: row-reverse على stAppViewContainer)
+       لم تنفع لأن هذا العنصر ليس بالضرورة الحاوية الفعلية لـ flex في كل
+       إصدارات Streamlit. الحل الحتمي بدل ذلك: نُخرج القائمة الجانبية من
+       التدفق الطبيعي (position: fixed) ونثبّتها فعليًا على الحافة اليمنى
+       للشاشة، ثم "ندفع" المحتوى الرئيسي بمقدار عرضها بالضبط عبر متغيّر
+       CSS واحد مشترك — بذلك يستحيل أن يتغطى أحدهما على الآخر أو يفترقا. */
+    :root {{
+        --twiki-sidebar-w: clamp(88px, 22vw, 320px);
     }}
-    /* القائمة الجانبية يجب ألا تكون position:fixed أبدًا — هذا يضمن أنها
-       عنصر flex عادي يحجز عرضه الخاص ضمن التخطيط، فلا يتراكب مع المحتوى. */
     section[data-testid="stSidebar"] {{
-        position: relative !important;
-        flex: 0 0 auto !important;
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        left: auto !important;
+        height: 100vh !important;
+        width: var(--twiki-sidebar-w) !important;
+        overflow-y: auto !important;
+        z-index: 999000 !important;
         direction: rtl;
     }}
-    [data-testid="stMain"],
-    [data-testid="stAppViewContainer"] > .main {{
+    /* بعض إصدارات Streamlit تضبط عرض القائمة الجانبية على العنصر الداخلي
+       الأول لا على section نفسها — نُجبر العرض هناك أيضًا لضمان التطابق. */
+    section[data-testid="stSidebar"] > div:first-child {{
+        width: var(--twiki-sidebar-w) !important;
+        max-width: var(--twiki-sidebar-w) !important;
+    }}
+    /* ندفع حاوية التطبيق كاملة يمينًا بمقدار عرض القائمة الجانبية تمامًا،
+       فيبقى المحتوى الرئيسي بعيدًا عنها بدون أي تراكب. */
+    [data-testid="stAppViewContainer"] {{
+        margin-right: var(--twiki-sidebar-w) !important;
+        margin-left: 0 !important;
         direction: rtl;
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
     }}
 
     /* ---------- Sidebar ---------- */
@@ -713,12 +722,9 @@ st.markdown(
         /* الحاوية الرئيسية تبقى flex-row (نفس اللابتوب) — القائمة الجانبية
            والمحتوى جنب بعض، مو فوق بعض. لا نغيّر display هنا إطلاقًا. */
 
-        /* القائمة الجانبية: نفس اللابتوب، بعرض مصغّر ثابت، وظاهرة دائمًا */
-        section[data-testid="stSidebar"] {{
-            width: clamp(88px, 27vw, 108px) !important;
-            min-width: clamp(88px, 27vw, 108px) !important;
-            max-width: clamp(88px, 27vw, 108px) !important;
-        }}
+        /* عرض القائمة الجانبية أصبح موحّدًا عبر --twiki-sidebar-w أعلاه،
+           ويتقلّص تلقائيًا على الشاشات الضيقة بفضل vw في clamp() — لا حاجة
+           لإعادة ضبطه هنا. */
         /* إخفاء زر طي/فتح القائمة — يجب أن تبقى ظاهرة دائمًا بدون إمكانية إخفائها */
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="collapsedControl"] {{
