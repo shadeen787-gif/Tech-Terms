@@ -1288,3 +1288,37 @@ _PAGES = {
     "settings": page_settings,
 }
 _PAGES.get(st.session_state.page, page_home)()
+
+# =====================================================================
+# ⬇️ حقن متأخر لقواعد إرساء الشريط الجانبي على اليمين ⬇️
+# السبب الحقيقي وراء تجاهل قواعد order/flex السابقة: كتلة الـ <style>
+# الرئيسية تُحقن مبكرًا (أول السكربت)، بينما Streamlit يولّد CSS الخاص
+# بالشريط الجانبي وقت رندره الفعلي (render_sidebar، قرب نهاية السكربت) —
+# فتُضاف أنماط Streamlit إلى <head> بعد أنماطنا. وعند تساوي القوة
+# التخصيصية (specificity) واستخدام !important من الطرفين، الأنماط
+# الأحدث في ترتيب المستند هي التي تفوز — فتغلب Streamlit علينا دائمًا.
+# الحل: نحقن نسخة من نفس القواعد هنا، بعد رندر كل شيء (الشريط الجانبي
+# وكل الصفحات)، فتكون أنماطنا هي الأحدث فعليًا وتفوز حتمًا. كما نرفع قوة
+# الـ selector بتكرار الخاصية لضمان الفوز حتى لو تساوى ترتيب الحقن.
+# =====================================================================
+st.markdown(
+    """
+    <style>
+    [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] {
+        display: flex !important;
+    }
+    section[data-testid="stSidebar"][data-testid="stSidebar"] {
+        order: -9999 !important;
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        margin: 0 !important;
+        transform: none !important;
+    }
+    [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
+        order: 9999 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
