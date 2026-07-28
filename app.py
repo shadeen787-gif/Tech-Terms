@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 import os
 import re
@@ -86,10 +87,10 @@ TERMS_CATALOG = {
 }
 SECTION_ICONS = {"1": "🧠", "2": "🎯", "3": "💻", "4": "🚀"}
 NAV_ITEMS = [
-    ("home", "🏠", "الرئيسية"),
-    ("history", "🕒", "السجل"),
-    ("favorites", "⭐", "المفضلة"),
-    ("terms", "📚", "المصطلحات"),
+    ("home", None, "الرئيسية"),
+    ("history", None, "السجل"),
+    ("favorites", None, "المفضلة"),
+    ("terms", None, "المصطلحات"),
     ("settings", "⚙️", "الإعدادات"),
 ]
 
@@ -300,10 +301,11 @@ st.markdown(
     [data-testid="stHeader"] {{ background: transparent !important; }}
     #MainMenu, footer {{ visibility: hidden; }}
 
-    /* ---------- زر إظهار القائمة الجانبية بعد إخفائها ---------- */
+    /* ---------- زر إظهار القائمة الجانبية بعد إخفائها (☰) ---------- */
     /* نثبّت الزر بموضع مطلق (position: fixed) بدل الاعتماد فقط على
        display/opacity/visibility، لأن هذه الخصائص لا تفيد إن كان العنصر
-       الأب نفسه منكمشًا لعرض صفر أو مقصوصًا بـ overflow:hidden. */
+       الأب نفسه منكمشًا لعرض صفر أو مقصوصًا بـ overflow:hidden.
+       نضعه أعلى اليمين (بدل اليسار) لأن التطبيق RTL. */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {{
         visibility: visible !important;
@@ -311,7 +313,8 @@ st.markdown(
         opacity: 1 !important;
         position: fixed !important;
         top: 0.6rem !important;
-        left: 0.6rem !important;
+        right: 0.6rem !important;
+        left: auto !important;
         width: auto !important;
         height: auto !important;
         overflow: visible !important;
@@ -352,7 +355,7 @@ st.markdown(
     }}
     * {{ direction: rtl; text-align: right; }}
 
-    .block-container {{ padding-top: 2.2rem; max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }}
+    .block-container {{ padding-top: 2.2rem; max-width: min(900px, 92vw); width: 100%; margin: 0 auto; position: relative; z-index: 1; }}
 
     /* ---------- خلفية حية ---------- */
     .bg-fx {{ position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }}
@@ -380,22 +383,11 @@ st.markdown(
     @keyframes fadeIn {{ from {{ opacity:0; transform: translateY(-8px); }} to {{ opacity:1; transform: translateY(0); }} }}
     @keyframes slideUpFade {{ from {{ opacity:0; transform: translateY(22px); }} to {{ opacity:1; transform: translateY(0); }} }}
 
-    /* ---------- إرساء القائمة الجانبية على اليمين (RTL) ----------
-       أكّدت أداة التشخيص أن stAppViewContainer فعلاً flex + direction:rtl،
-       لكن الشريط الجانبي ما زال يظهر يسارًا — أي أن Streamlit نفسه يضبط له
-       ترتيب (order) داخلي يتجاوز direction/flex-direction. الحل الحاسم:
-       نفرض order على الشريط نفسه مباشرة (بدل التلاعب بـ flex-direction)،
-       فهذا يتجاوز أي ترتيب افتراضي مهما كان مصدره. */
-    [data-testid="stAppViewContainer"] {{
-        display: flex !important;
-    }}
-    section[data-testid="stSidebar"] {{
-        order: -9999 !important;
-        position: relative !important;
-    }}
-    [data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {{
-        order: 9999 !important;
-    }}
+    /* ملاحظة: قواعد إرساء الشريط الجانبي على اليمين (order) وسلوك الجوال
+       (تراكب/hamburger) موجودة في كتلة <style> مُحقنة في نهاية الملف عمدًا
+       — لأن Streamlit يولّد CSS الخاص بالشريط الجانبي وقت رندره الفعلي
+       (قرب نهاية السكربت)، فحقن قواعدنا مبكرًا هنا يجعلها تُهزم في
+       التعادل بين أنماط !important. راجع نهاية الملف. */
 
     /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"] {{
@@ -480,7 +472,14 @@ st.markdown(
         background: linear-gradient(90deg, var(--text) 20%, var(--violet) 75%, var(--blue) 100%);
         -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
         filter: drop-shadow(0 0 22px rgba(139,92,246,.3)); }}
-    .term-sub {{ color: var(--text-muted); font-size:1.25rem; }}
+    .term-sub {{
+        color: var(--text);
+        font-size: 1.3rem;
+        font-weight: 700;
+        line-height: 1.6;
+        max-width: 46rem;
+        opacity: .92;
+    }}
 
     /* ---------- مربع البحث ---------- */
     div[data-testid="stTextInput"] {{ position: relative; }}
@@ -693,70 +692,24 @@ st.markdown(
     div[data-testid="stToggle"] label p {{ color: var(--text) !important; font-weight:600; }}
 
     /* =====================================================================
-       دعم الجوال — تخطيط عمودين حقيقي (نفس تخطيط اللابتوب)، مو إعادة تصميم.
-       القائمة الجانبية الأصلية لـ Streamlit تبقى ظاهرة دائمًا بجانب المحتوى
-       (نفس ما هي باللابتوب)، فقط نضيّق عرضها ونصغّر الخطوط/الحشو. كل القواعد
-       هنا محصورة داخل @media (max-width: 768px) ولا تؤثر على اللابتوب.
-       ===================================================================== */
+       دعم الجوال — الشريط الجانبي مخفي افتراضيًا، ويظهر كطبقة منبثقة
+       (overlay) من اليمين عند فتحه عبر زر الهامبرغر (☰)، بدل ما يبقى محجوز
+       مساحته دائمًا كما كان سابقًا. تفاصيل التراكب الفعلية (position:fixed
+       عند aria-expanded=true) موجودة بالكتلة المتأخرة آخر الملف لضمان
+       فوزها في ترتيب الحقن. هنا فقط مقاسات محتوى الشريط عند فتحه —
+       بما إنه صار عرضه العادي (~280-300px) مو شريط أيقونات ضيق، لا داعي
+       لتصغير الخط بشكل قوي كالسابق. */
     @media (max-width: 768px) {{
         html, body {{ overflow-x: hidden !important; }}
 
-        /* الحاوية الرئيسية تبقى flex-row (نفس اللابتوب) — القائمة الجانبية
-           والمحتوى جنب بعض، مو فوق بعض. لا نغيّر display هنا إطلاقًا. */
-
-        /* القائمة الجانبية: نفس اللابتوب، بعرض مصغّر ثابت، وظاهرة دائمًا */
-        section[data-testid="stSidebar"] {{
-            width: clamp(88px, 27vw, 108px) !important;
-            min-width: clamp(88px, 27vw, 108px) !important;
-            max-width: clamp(88px, 27vw, 108px) !important;
-        }}
-        /* إخفاء زر طي/فتح القائمة — يجب أن تبقى ظاهرة دائمًا بدون إمكانية إخفائها */
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="collapsedControl"] {{
-            display: none !important;
-        }}
-
-        /* محتوى القائمة الجانبية: تصغير شامل ليتناسب مع العرض الضيّق */
         section[data-testid="stSidebar"] .block-container {{
-            padding: clamp(.6rem, 3vw, .9rem) clamp(.35rem, 2vw, .5rem) !important;
+            padding: 1rem .9rem !important;
         }}
         section[data-testid="stSidebar"] .brand {{
-            font-size: clamp(.66rem, 2.8vw, .78rem) !important;
-            flex-direction: row !important;
-            gap: .35rem !important;
-            justify-content: flex-start !important;
-            text-align: right;
-            white-space: nowrap !important;
-        }}
-        section[data-testid="stSidebar"] .brand-sub {{
-            display: none;
-        }}
-        /* نفس بنية زر اللابتوب (flex: أيقونة بعرض ثابت + نص بلا التفاف)،
-           فقط بمقاسات أصغر تناسب العرض الضيق — لا إعادة تصميم. */
-        section[data-testid="stSidebar"] div[data-testid="stButton"] button {{
-            padding: clamp(.5rem, 2.4vw, .65rem) clamp(.4rem, 1.6vw, .55rem) !important;
-        }}
-        section[data-testid="stSidebar"] div[data-testid="stButton"] button > div[data-testid="stMarkdownContainer"] {{
-            gap: clamp(.3rem, 1.4vw, .45rem) !important;
-        }}
-        section[data-testid="stSidebar"] div[data-testid="stButton"] button [data-testid^="stIcon"] {{
-            width: clamp(1.1rem, 4.5vw, 1.3rem) !important;
-            font-size: clamp(.85rem, 3.4vw, 1rem) !important;
-        }}
-        section[data-testid="stSidebar"] div[data-testid="stButton"] button p {{
-            font-size: clamp(.62rem, 2.8vw, .72rem) !important;
-        }}
-        section[data-testid="stSidebar"] .theme-label {{
-            font-size: clamp(.6rem, 2.6vw, .7rem) !important;
-        }}
-        section[data-testid="stSidebar"] div[data-testid="stRadio"] label p {{
-            font-size: clamp(.6rem, 2.6vw, .7rem) !important;
-        }}
-        section[data-testid="stSidebar"] .sidebar-stats {{
-            font-size: clamp(.6rem, 2.6vw, .68rem) !important;
+            font-size: 1.15rem !important;
         }}
 
-        /* المحتوى الرئيسي يستخدم باقي المساحة تلقائيًا (flex:1 من Streamlit) */
+        /* المحتوى الرئيسي يستخدم باقي المساحة تلقائيًا */
         .block-container {{
             padding-left: clamp(.6rem, 3vw, .9rem) !important;
             padding-right: clamp(.6rem, 3vw, .9rem) !important;
@@ -791,7 +744,7 @@ st.markdown(
         /* ---------- عنوان المصطلح والصفحة ---------- */
         .term-hero {{ padding-bottom: clamp(.7rem, 3vw, .9rem); margin-bottom: clamp(.9rem, 4vw, 1.1rem); }}
         .term-title {{ font-size: clamp(1.2rem, 6.5vw, 1.6rem) !important; line-height: 1.25 !important; }}
-        .term-sub {{ font-size: clamp(.8rem, 3.4vw, .9rem) !important; }}
+        .term-sub {{ font-size: clamp(.82rem, 3.6vw, .95rem) !important; font-weight: 700 !important; line-height: 1.55 !important; max-width: 100% !important; }}
         .term-eyebrow {{ font-size: clamp(.68rem, 2.6vw, .76rem) !important; }}
         .page-title {{ font-size: clamp(1.1rem, 5vw, 1.3rem) !important; }}
         .page-sub {{ font-size: clamp(.76rem, 3.2vw, .85rem) !important; margin-bottom: clamp(.7rem, 3vw, .9rem) !important; }}
@@ -1117,7 +1070,10 @@ def render_sidebar():
 
         for key, icon, label in NAV_ITEMS:
             with st.container(key=f"navwrap_{key}"):
-                if st.button(label, icon=icon, key=f"navbtn_{key}", use_container_width=True):
+                btn_kwargs = {"key": f"navbtn_{key}", "use_container_width": True}
+                if icon:
+                    btn_kwargs["icon"] = icon
+                if st.button(label, **btn_kwargs):
                     st.session_state.page = key
                     st.rerun()
 
@@ -1149,7 +1105,7 @@ def page_home():
         <div class="term-hero">
             <div class="term-eyebrow">// TECHWIKI</div>
             <div class="term-title">🖥️ TechWiki</div>
-            <div class="term-sub">Learn Technical Terms with AI</div>
+            <div class="term-sub">اكتب أي مصطلح تقني، وسيشرحه لك الذكاء الاصطناعي بالعربي مع أمثلة توضيحية.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1304,36 +1260,129 @@ _PAGES.get(st.session_state.page, page_home)()
 st.markdown(
     """
     <style>
-    [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] {
-        display: flex !important;
-        flex-wrap: nowrap !important;
+    /* ---------- سطح المكتب: الشريط الجانبي مرساة دائمًا داخل التخطيط ---------- */
+    @media (min-width: 769px) {
+        [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+        }
+        section[data-testid="stSidebar"][data-testid="stSidebar"] {
+            order: -9999 !important;
+            position: relative !important;
+            left: auto !important;
+            right: auto !important;
+            margin: 0 !important;
+            transform: none !important;
+            flex: 0 0 auto !important;
+        }
+        [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
+            order: 9999 !important;
+            position: relative !important;
+            inset: auto !important;
+            left: auto !important;
+            right: auto !important;
+            top: auto !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
     }
-    /* الشريط الجانبي: عنصر flex بعرض ثابت لا يتقلّص ولا يتمدد */
-    section[data-testid="stSidebar"][data-testid="stSidebar"] {
-        order: -9999 !important;
-        position: relative !important;
-        left: auto !important;
-        right: auto !important;
-        margin: 0 !important;
-        transform: none !important;
-        flex: 0 0 auto !important;
-    }
-    /* المحتوى الرئيسي: كان على الأغلب position:absolute أو width:100% ثابت
-       يتجاهل flex كليًا ويتمدد فوق الشريط — نجبره هنا يكون عنصر flex عادي
-       يأخذ المساحة المتبقية فقط، لا كل عرض الشاشة. */
-    [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
-        order: 9999 !important;
-        position: relative !important;
-        inset: auto !important;
-        left: auto !important;
-        right: auto !important;
-        top: auto !important;
-        flex: 1 1 0% !important;
-        width: auto !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
+
+    /* ---------- الجوال: الشريط مخفي افتراضيًا، ويظهر كطبقة منبثقة من اليمين ---------- */
+    @media (max-width: 768px) {
+        /* زر الهامبرغر (☰) لإظهار الشريط — أعلى يمين الشاشة */
+        [data-testid="stSidebarCollapsedControl"][data-testid="stSidebarCollapsedControl"] {
+            top: 0.6rem !important;
+            right: 0.6rem !important;
+            left: auto !important;
+        }
+        /* عند الفتح: تراكب حقيقي فوق المحتوى، لا يزيحه ولا يحجز مساحة منه */
+        section[data-testid="stSidebar"][data-testid="stSidebar"][aria-expanded="true"] {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            left: auto !important;
+            height: 100vh !important;
+            width: min(82vw, 300px) !important;
+            max-width: min(82vw, 300px) !important;
+            margin: 0 !important;
+            transform: none !important;
+            z-index: 999600 !important;
+            box-shadow: -14px 0 46px rgba(0,0,0,.55) !important;
+            overflow-y: auto !important;
+        }
+        section[data-testid="stSidebar"][data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+        }
+        /* طبقة تعتيم خلف الشريط عند فتحه — تعطي إحساس نافذة منبثقة حقيقية */
+        [data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="true"])::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            z-index: 999500;
+            animation: fadeIn .18s ease;
+        }
     }
     </style>
     """,
     unsafe_allow_html=True,
+)
+
+# =====================================================================
+# طبقة شفافة حقيقية (لا CSS وهمي) خلف الشريط الجانبي عند فتحه على الجوال:
+# الضغط عليها يغلق الشريط — هذا ما لا يمكن لـ CSS وحده فعله (يحتاج JS
+# لأنه يجب أن "يضغط" فعليًا على زر الطي الأصلي في Streamlit كي تتحدث
+# حالة التطبيق الداخلية، لا مجرد إخفاء بصري). أفضل تخمين متاح لزر الطي
+# الأصلي هو أول <button> داخل الشريط نفسه (وهو ما لاحظناه ظاهرًا دومًا
+# في كل اللقطات كسهم "«" أعلى الشريط) — إن لم ينجح، سنحتاج جولة تشخيص
+# أخرى لمعرفة الـ selector الدقيق.
+# =====================================================================
+components.html(
+    """
+    <script>
+    (function () {
+        const doc = window.parent.document;
+        function ensureBackdrop() {
+            let bd = doc.getElementById('twiki-sidebar-backdrop');
+            if (!bd) {
+                bd = doc.createElement('div');
+                bd.id = 'twiki-sidebar-backdrop';
+                bd.style.cssText =
+                    'position:fixed;inset:0;z-index:999550;display:none;background:transparent;';
+                bd.addEventListener('click', function () {
+                    const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+                    if (sidebar && sidebar.getAttribute('aria-expanded') === 'true') {
+                        const closeBtn = sidebar.querySelector('button');
+                        if (closeBtn) closeBtn.click();
+                    }
+                });
+                doc.body.appendChild(bd);
+            }
+            return bd;
+        }
+        function sync() {
+            const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+            const bd = ensureBackdrop();
+            const isMobile = window.parent.innerWidth <= 768;
+            if (sidebar && isMobile && sidebar.getAttribute('aria-expanded') === 'true') {
+                bd.style.display = 'block';
+            } else {
+                bd.style.display = 'none';
+            }
+        }
+        sync();
+        const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar) {
+            const mo = new MutationObserver(sync);
+            mo.observe(sidebar, { attributes: true, attributeFilter: ['aria-expanded'] });
+        }
+        window.parent.addEventListener('resize', sync);
+    })();
+    </script>
+    """,
+    height=0,
 )
