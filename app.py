@@ -20,7 +20,7 @@ FAV_STORAGE_KEY = "termai_favorites_v1"
 HIST_STORAGE_KEY = "termai_history_v1"
 
 # =====================================================================
-# إعداد الصفحة
+# تنظيم الصفحة
 # =====================================================================
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
@@ -95,7 +95,7 @@ NAV_ITEMS = [
 ]
 
 # =====================================================================
-# حالة الجلسة
+# هنا الحاله
 # =====================================================================
 _DEFAULTS = {
     "theme": "dark",
@@ -120,13 +120,10 @@ for k, v in _DEFAULTS.items():
 
 
 # ---------------------------------------------------------------------
-# حفظ المفضلة في Local Storage الخاص بالمتصفح (لكل مستخدم/متصفح خصوصيته)
+# حفظ المفضلةيكون في Local Storage 
 # ---------------------------------------------------------------------
 def load_favorites_from_local_storage():
-    """يقرأ المفضلة من Local Storage مرة واحدة عند بداية الجلسة.
-    نظرًا لطبيعة المكوّن غير المتزامنة، قد تحتاج القيمة الحقيقية لجولة
-    تحديث إضافية (rerun) قبل أن تظهر، لذلك نعيد المحاولة عدة مرات قبل
-    الاستسلام بافتراض أن لا يوجد مفضلات محفوظة أصلاً."""
+   
     if not LOCAL_STORAGE_OK or st.session_state["_fav_loaded_from_ls"]:
         return
     try:
@@ -167,10 +164,10 @@ load_favorites_from_local_storage()
 
 
 # ---------------------------------------------------------------------
-# حفظ السجل في Local Storage الخاص بالمتصفح (نفس منطق المفضلة تمامًا)
+# هنا نفس المفضله ,  حفظ السجل يكون في Local Storage
 # ---------------------------------------------------------------------
 def load_history_from_local_storage():
-    """يقرأ السجل من Local Storage مرة واحدة عند بداية الجلسة."""
+   
     if not LOCAL_STORAGE_OK or st.session_state["_hist_loaded_from_ls"]:
         return
     try:
@@ -229,10 +226,7 @@ def _sync_theme_from_mobile():
 
 
 def trigger_new_search(term):
-    """يعبّئ مربع البحث ويشغّل بحثًا فعليًا جديدًا (اقتراحات / صفحة المصطلحات).
-    لا يمكن تعديل st.session_state.term_input مباشرة بعد إنشاء العنصر (widget) في
-    نفس الجولة، لذلك نستخدم متغيّرًا وسيطًا (pending_term) يُطبَّق في بداية
-    الجولة التالية قبل إنشاء مربع البحث."""
+   
     st.session_state.pending_term = term
     st.session_state.trigger_search = True
     st.session_state.page = "home"
@@ -240,7 +234,7 @@ def trigger_new_search(term):
 
 
 def show_existing_result(entry):
-    """يعيد عرض شرح محفوظ مسبقًا من السجل أو المفضلة بدون استدعاء الـ API من جديد."""
+    
     st.session_state.current_result = entry
     st.session_state.pending_term = entry["term"]
     st.session_state.page = "home"
@@ -248,7 +242,7 @@ def show_existing_result(entry):
 
 
 # =====================================================================
-# الألوان حسب الثيم
+#  الثيم
 # =====================================================================
 THEMES = {
     "dark": dict(
@@ -268,7 +262,7 @@ T = THEMES[st.session_state.theme]
 ACTIVE_PAGE = st.session_state.page
 
 # =====================================================================
-# CSS — تصميم Premium AI SaaS
+# CSS —  Premium AI SaaS
 # =====================================================================
 st.markdown(
     f"""
@@ -301,14 +295,12 @@ st.markdown(
     [data-testid="stHeader"] {{ background: transparent !important; }}
     #MainMenu, footer {{ visibility: hidden; }}
 
-    /* ملاحظة: كل تنسيقات أزرار طي/فتح القائمة الجانبية (للوضعين الفاتح
-       والداكن) وتخطيط الشريط للجوال/سطح المكتب موجودة بكتلة واحدة نظيفة
-       في نهاية الملف — راجعها هناك بدل البحث في أكثر من مكان. */
+    
     * {{ direction: rtl; text-align: right; }}
 
     .block-container {{ padding-top: 2.2rem; max-width: min(900px, 92vw); width: 100%; margin: 0 auto; position: relative; z-index: 1; }}
 
-    /* ---------- خلفية حية ---------- */
+    /* ---------- خلفية المتحركه  ---------- */
     .bg-fx {{ position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }}
     .bg-fx .grid {{
         position: absolute; inset: 0;
@@ -334,13 +326,9 @@ st.markdown(
     @keyframes fadeIn {{ from {{ opacity:0; transform: translateY(-8px); }} to {{ opacity:1; transform: translateY(0); }} }}
     @keyframes slideUpFade {{ from {{ opacity:0; transform: translateY(22px); }} to {{ opacity:1; transform: translateY(0); }} }}
 
-    /* ملاحظة: قواعد إرساء الشريط الجانبي على اليمين (order) وسلوك الجوال
-       (تراكب/hamburger) موجودة في كتلة <style> مُحقنة في نهاية الملف عمدًا
-       — لأن Streamlit يولّد CSS الخاص بالشريط الجانبي وقت رندره الفعلي
-       (قرب نهاية السكربت)، فحقن قواعدنا مبكرًا هنا يجعلها تُهزم في
-       التعادل بين أنماط !important. راجع نهاية الملف. */
+    
 
-    /* ---------- Sidebar ---------- */
+    /* ---------- هذا Sidebar ---------- */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, var(--bg-elev), var(--bg)) !important;
         border-left: 1px solid var(--border);
@@ -370,8 +358,7 @@ st.markdown(
         transition: all .2s ease;
         width: 100% !important;
     }}
-    /* عمود العنصر داخل الزر (أيقونة + نص) — نفس تخطيط اللابتوب تمامًا،
-       فقط نغيّر المقاسات بالإعلام (media query) لا البنية. */
+    
     section[data-testid="stSidebar"] div[data-testid="stButton"] button > div[data-testid="stMarkdownContainer"] {{
         display: flex !important;
         align-items: center !important;
@@ -380,7 +367,7 @@ st.markdown(
         width: 100% !important;
         overflow: hidden !important;
     }}
-    /* الأيقونة: عرض ثابت دائمًا كي تتحاذى كل الأسطر رأسيًا مع بعضها */
+    
     section[data-testid="stSidebar"] div[data-testid="stButton"] button [data-testid^="stIcon"] {{
         flex: 0 0 auto !important;
         width: 1.5rem !important;
@@ -390,7 +377,7 @@ st.markdown(
         font-size: 1.15rem !important;
         line-height: 1 !important;
     }}
-    /* النص: يتمدد في المساحة المتبقية، بدون التفاف، ومحاذاة رأسية للوسط */
+    
     section[data-testid="stSidebar"] div[data-testid="stButton"] button p {{
         flex: 1 1 auto !important;
         margin: 0 !important;
@@ -454,17 +441,11 @@ st.markdown(
         border-color: var(--violet) !important;
         box-shadow: 0 0 0 4px var(--violet-soft) !important;
     }}
-    /* أيقونة البحث الزخرفية: تُترك مساحة كافية لها ضمن padding الحقل نفسه
-       (padding-right أعلاه) بحيث لا يصل إليها نص المستخدم المكتوب مطلقًا،
-       وتُرسم فوق الحقل فقط بلا أي تفاعل (pointer-events: none). */
+   
     div[data-testid="stTextInput"]::after {{
         content: "🔍"; position:absolute; top: 2.55rem; right: 1.2rem; font-size:1.15rem; opacity:.55; pointer-events:none; z-index: 2;
     }}
-    /* تلميح Streamlit الأصلي "Press Enter to apply": هذا العنصر يأتي من
-       Streamlit نفسه (لا من كودنا)، وكان يُرسم فوق نص الإدخال والأيقونة
-       مسبّبًا التداخل. الحل الجذري هو نقله بالكامل خارج صندوق الحقل إلى
-       سطر مستقل أسفله (لا فوقه ولا فوق الأيقونة)، مع حجز مساحة كافية له
-       عبر padding-bottom في الحاوية الأم أعلاه، بدل إخفائه بالقص/overflow. */
+   
     div[data-testid="stTextInput"] div[data-testid="InputInstructions"] {{
         position: absolute !important;
         top: 100% !important;
@@ -578,7 +559,7 @@ st.markdown(
         transform: translateY(-2px);
     }}
 
-    /* ---------- لوحات عامة (Panels) ---------- */
+    /* ---------- لوحات عامة Panels ---------- */
     .st-key-result_panel, .st-key-suggestions_panel, .st-key-stats_panel, .st-key-settings_panel {{
         background: {T['card_bg']} !important;
         border: 1px solid var(--border) !important;
@@ -676,14 +657,8 @@ st.markdown(
     }}
     div[data-testid="stToggle"] label p {{ color: var(--text) !important; font-weight:600; }}
 
-    /* =====================================================================
-       دعم الجوال — الشريط الجانبي مخفي افتراضيًا، ويظهر كطبقة منبثقة
-       (overlay) من اليمين عند فتحه عبر زر الهامبرغر (☰)، بدل ما يبقى محجوز
-       مساحته دائمًا كما كان سابقًا. تفاصيل التراكب الفعلية (position:fixed
-       عند aria-expanded=true) موجودة بالكتلة المتأخرة آخر الملف لضمان
-       فوزها في ترتيب الحقن. هنا فقط مقاسات محتوى الشريط عند فتحه —
-       بما إنه صار عرضه العادي (~280-300px) مو شريط أيقونات ضيق، لا داعي
-       لتصغير الخط بشكل قوي كالسابق. */
+    /* ===================================================================== */
+      
     @media (max-width: 768px) {{
         html, body {{ overflow-x: hidden !important; }}
 
@@ -694,17 +669,15 @@ st.markdown(
             font-size: 1.15rem !important;
         }}
 
-        /* المحتوى الرئيسي يستخدم باقي المساحة تلقائيًا */
+        /* المحتوى الرئيسي يسوي المساحة تلقائيًا */
         .block-container {{
             padding-left: clamp(.6rem, 3vw, .9rem) !important;
             padding-right: clamp(.6rem, 3vw, .9rem) !important;
             padding-top: clamp(.7rem, 3vw, 1rem) !important;
         }}
 
-        /* ---------- شبكة عمودين لكل الأقسام (اقتراحات / إحصائيات / مصطلحات) ----------
-           سبب فشل flex-wrap سابقًا: Streamlit يفرض flex-direction: column تلقائيًا
-           على div[data-testid="stHorizontalBlock"] بالشاشات الضيقة، فنجبر
-           flex-direction: row صراحة هنا فوق سلوكه الافتراضي. */
+        /* ---------- شبكة عمودين لكل الأقسام  ---------- */
+          
         .st-key-suggestions_panel div[data-testid="stHorizontalBlock"],
         .st-key-stats_panel div[data-testid="stHorizontalBlock"],
         .st-key-terms_grid div[data-testid="stHorizontalBlock"] {{
@@ -777,7 +750,7 @@ st.markdown(
             padding: clamp(.6rem, 2.8vw, .75rem) clamp(.65rem, 3vw, .8rem) !important;
         }}
 
-        /* ---------- اللوحات العامة (نتيجة الشرح / السجل / المفضلة / الإحصائيات) ---------- */
+        /* ---------- اللوحات العامة ل(نتيجة الشرح / السجل / المفضلة / الإحصائيات) ---------- */
         .st-key-result_panel, .st-key-suggestions_panel, .st-key-stats_panel, .st-key-settings_panel {{
             padding: clamp(.85rem, 4vw, 1.15rem) clamp(.7rem, 3.4vw, .95rem) !important;
             margin-top: clamp(.75rem, 3.2vw, 1rem) !important;
@@ -799,7 +772,7 @@ st.markdown(
             line-height: 1.8 !important;
         }}
 
-        /* ---------- بلوك الكود — قابل للتمرير الأفقي بدل ما يكسر الصفحة ---------- */
+        /* ---------- بلوك الكود   ---------- */
         .code-tab {{ padding: clamp(.35rem, 1.8vw, .5rem) clamp(.55rem, 2.6vw, .8rem) !important; }}
         .code-lang {{ font-size: clamp(.64rem, 2.6vw, .74rem) !important; }}
         div[data-testid="stCode"] {{
@@ -812,7 +785,7 @@ st.markdown(
             white-space: pre !important;
         }}
 
-        /* ---------- الصور — تتقلص مع الشاشة دائمًا ---------- */
+        /* ----------   تصغير  مع الشاشة دائمًا ---------- */
         .block-container img {{ max-width: 100% !important; height: auto !important; }}
 
         /* ---------- إحصائيات ---------- */
@@ -841,7 +814,7 @@ st.markdown(
 )
 
 # =====================================================================
-# منطق الذكاء الاصطناعي (Groq) — بدون أي تغيير في المنطق
+# منطق الذكاء الاصطناعي (Groq) 
 # =====================================================================
 if not api_key:
     st.error("⚠️ لم يتم العثور على مفتاح API. تأكد من ملف .env (المتغير GROQ_API_KEY)")
@@ -850,18 +823,11 @@ if not api_key:
 client = Groq(api_key=api_key)
 
 
-FALLBACK_MODEL = "llama-3.1-8b-instant"  # يُستخدم فقط كبديل تلقائي عند نفاد حصة الموديل الأساسي (429)
+FALLBACK_MODEL = "llama-3.1-8b-instant"  # يُستخدم بس كبديل تلقائي عند نفاد حصة الموديل الأساسي ل (429)
 
 
 def generate_with_retry(client, model, prompt, max_retries=2, max_tokens=700, fallback_model=FALLBACK_MODEL):
-    """
-    يحاول أولاً بالموديل الأساسي (الأدق، llama-3.3-70b-versatile) لأن مشروع شرح
-    المصطلحات التقنية يحتاج دقته. عند نفاد الحصة اليومية (خطأ 429) لا تُفيد إعادة
-    قصف نفس الموديل المُستنفد وتُهدر طلبات إضافية، لذا يتم التحويل فورًا لمرة واحدة
-    فقط إلى موديل أخف وأسرع (fallback_model) بدل الانتظار وإعادة المحاولة على نفسه.
-    أما عند خطأ خادم مؤقت (503) فتُعاد المحاولة على نفس الموديل مع انتظار قصير
-    لأن المشكلة غالبًا عارضة وليست نفادًا في الحصة.
-    """
+    
     last_error = None
     current_model = model
     for attempt in range(max_retries):
@@ -875,7 +841,7 @@ def generate_with_retry(client, model, prompt, max_retries=2, max_tokens=700, fa
             last_error = e
             err_text = str(e)
             if "429" in err_text and fallback_model and current_model != fallback_model:
-                current_model = fallback_model  # تحويل فوري لموديل أخف بدل إعادة الطلب على نفس الموديل المُستنفد
+                current_model = fallback_model  # تحويل فوري لموديل أخف بدال لا  يعيد الطلب على نفس الموديل المخلص
                 continue
             if "503" in err_text and attempt < max_retries - 1:
                 time.sleep(3 * (attempt + 1))
@@ -912,8 +878,7 @@ def contains_forbidden_language(text):
 
 
 def strip_forbidden_words(text):
-    """إجراء أخير: إزالة أي كلمة تحتوي على حرف من لغة غير مسموحة، لضمان
-    عدم ظهور خليط لغات في الشرح النهائي حتى لو فشلت كل محاولات إعادة التوليد."""
+    
     cleaned_words = [w for w in text.split() if not contains_forbidden_language(w)]
     cleaned = " ".join(cleaned_words)
     cleaned = re.sub(r"\s+([:.,،؛؟!])", r"\1", cleaned)
@@ -1009,7 +974,7 @@ def run_search(term):
 
 
 # =====================================================================
-# عرض النتيجة بتنسيق الأقسام الاحترافي
+# عرض النتيجة   
 # =====================================================================
 def parse_sections(text):
     pattern = re.compile(r'(?m)^\s*(\d+)\.\s*([^:\n]+):\s*')
@@ -1048,7 +1013,7 @@ def render_section_content(content):
 
 
 def render_sections_only(text):
-    """يعرض كل أقسام الشرح (التعريف، المثال، النظرة السريعة، الاستخدام) دون زر حفظ."""
+    """يعرض كل أقسام الشرح بس دون زر حفظ."""
     sections = parse_sections(text)
     for idx, sec in enumerate(sections):
         icon = SECTION_ICONS.get(sec["num"], "📌")
@@ -1063,7 +1028,7 @@ def render_sections_only(text):
 
 
 def render_result(term, text):
-    """يعرض الشرح الكامل مع زر واحد لحفظ الصفحة كاملة (كل الأقسام) في المفضلة."""
+    """   الحفظ في المفضله """
     c_title, c_bm = st.columns([9, 1])
     with c_title:
         st.markdown(f'<div class="result-head">📖 {term}</div>', unsafe_allow_html=True)
@@ -1265,23 +1230,12 @@ _PAGES = {
 _PAGES.get(st.session_state.page, page_home)()
 
 # =====================================================================
-# ⬇️ الشريط الجانبي — تطبيق واحد لكل من سطح المكتب والجوال، بلا تكرار ⬇️
-# محقونة متأخرًا عمدًا (بعد render_sidebar وكل الصفحات) لأن Streamlit يولّد
-# CSS الخاص بالشريط وقت رندره الفعلي، فتُضاف أنماطه بعد أنماطنا لو حقنّاها
-# مبكرًا — وعند تعادل !important يفوز الأحدث في ترتيب المستند. حقنها هنا
-# يضمن أنها الأحدث فعليًا.
+# ⬇️ الشريط الجانبي — تطبيق واحد للكل من سطح المكتب والجوال، بدون اي تكرار ⬇️
 # =====================================================================
 st.markdown(
     """
     <style>
-    /* ---------- عناصر التحكم بالطي/الفتح: ☰ للفتح، ✕ للإغلاق ---------- */
-    /* مهم: نحصر الـ selector داخل section[data-testid="stSidebar"] فقط —
-       button[kind="header"] بدون حصر كان يطال أزرار أخرى غير متعلقة
-       بالشريط (مثل GitHub/Fork في شريط أدوات الاستضافة)، فيلوّنها بالخطأ
-       ولا يلوّن الزر الصحيح. كما نتجاهل أيقونة Streamlit الأصلية (SVG)
-       ونعرض حرفنا الخاص (☰ / ✕) عبر ::after لضمان الشكل المطلوب بدقة.
-       الألوان هنا ثابتة (خلفية فاتحة + حدّ أسود) لا تعتمد على الثيم، حتى
-       تبقى واضحة تمامًا فوق أي خلفية (فاتحة أو داكنة). */
+    
     [data-testid="stSidebarCollapsedControl"] button,
     section[data-testid="stSidebar"] button[kind="header"] {
         background: #f2f2f5 !important;
@@ -1329,8 +1283,7 @@ st.markdown(
         opacity: 1 !important;
     }
 
-    /* =================== سطح المكتب (min-width: 769px) ===================
-       الشريط جزء دائم من تخطيط flex، مرسى على اليمين عبر order. */
+    /* =================== سطح المكتب (min-width: 769px) =================== */
     @media (min-width: 769px) {
         [data-testid="stAppViewContainer"] {
             display: flex !important;
@@ -1354,19 +1307,16 @@ st.markdown(
         }
     }
 
-    /* =================== الجوال (max-width: 768px) ===================
-       الشريط لا يشارك إطلاقًا في تخطيط flex الرئيسي. مطويًا = صفر مساحة
-       تمامًا. مفتوحًا = طبقة منبثقة (position:fixed) من اليمين، لا تُزيح
-       ولا تُصغّر المحتوى الرئيسي إطلاقًا. */
+    /* =================== الجوال (max-width: 768px) =================== */
     @media (max-width: 768px) {
-        /* لا order ولا flex هنا إطلاقًا — الشريط خارج حسبة flex كليًا */
+        
         [data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
         }
 
-        /* مطويًا: صفر مساحة فعليًا، لا يظهر كشريط ضيق على أي جهة */
+        
         section[data-testid="stSidebar"][aria-expanded="false"] {
             width: 0 !important;
             min-width: 0 !important;
@@ -1381,7 +1331,7 @@ st.markdown(
             width: 0 !important;
         }
 
-        /* مفتوحًا: تراكب حقيقي من اليمين (RTL)، فوق المحتوى بدون إزاحته */
+    
         section[data-testid="stSidebar"][aria-expanded="true"] {
             position: fixed !important;
             top: 0 !important;
@@ -1402,7 +1352,7 @@ st.markdown(
             margin-left: 0 !important;
         }
 
-        /* طبقة تعتيم خلف الشريط عند فتحه */
+        
         [data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="true"])::before {
             content: "";
             position: fixed;
@@ -1418,9 +1368,7 @@ st.markdown(
 )
 
 # =====================================================================
-# طبقة شفافة حقيقية خلف الشريط عند فتحه على الجوال — الضغط عليها يغلق
-# الشريط، عبر محاكاة ضغط زر الطي الأصلي (button[kind="header"]) بدل مجرد
-# إخفاء بصري، كي تتحدث حالة Streamlit الداخلية فعليًا.
+# 
 # =====================================================================
 components.html(
     """
@@ -1428,11 +1376,6 @@ components.html(
     (function () {
         const doc = window.parent.document;
 
-        /* إغلاق تلقائي عند التنقّل: هذا الجزء ينفّذ فقط لما تتغيّر الصفحة
-           فعليًا (راجع تعليق تمرير st.session_state.page أسفل الكتلة)،
-           لأن Streamlit لا يعيد تحميل مكوّن components.html إلا إذا تغيّر
-           محتواه الفعلي — وربط المحتوى برقم/اسم الصفحة يضمن إعادة التنفيذ
-           عند كل تنقّل فقط، لا عند أي تفاعل آخر. */
         (function autoCloseOnNav() {
             const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
             const isMobile = window.parent.innerWidth <= 768;
