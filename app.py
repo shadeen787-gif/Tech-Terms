@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 import os
 import re
@@ -381,39 +382,11 @@ st.markdown(
     @keyframes slideUpFade {{ from {{ opacity:0; transform: translateY(22px); }} to {{ opacity:1; transform: translateY(0); }} }}
 
     /* ---------- إرساء القائمة الجانبية على اليمين (RTL) ----------
-       المحاولة السابقة (flex-direction: row-reverse على stAppViewContainer)
-       لم تنفع لأن هذا العنصر ليس بالضرورة الحاوية الفعلية لـ flex في كل
-       إصدارات Streamlit. الحل الحتمي بدل ذلك: نُخرج القائمة الجانبية من
-       التدفق الطبيعي (position: fixed) ونثبّتها فعليًا على الحافة اليمنى
-       للشاشة، ثم "ندفع" المحتوى الرئيسي بمقدار عرضها بالضبط عبر متغيّر
-       CSS واحد مشترك — بذلك يستحيل أن يتغطى أحدهما على الآخر أو يفترقا. */
-    :root {{
-        --twiki-sidebar-w: clamp(88px, 22vw, 320px);
-    }}
-    section[data-testid="stSidebar"] {{
-        position: fixed !important;
-        top: 0 !important;
-        right: 0 !important;
-        left: auto !important;
-        height: 100vh !important;
-        width: var(--twiki-sidebar-w) !important;
-        overflow-y: auto !important;
-        z-index: 999000 !important;
-        direction: rtl;
-    }}
-    /* بعض إصدارات Streamlit تضبط عرض القائمة الجانبية على العنصر الداخلي
-       الأول لا على section نفسها — نُجبر العرض هناك أيضًا لضمان التطابق. */
-    section[data-testid="stSidebar"] > div:first-child {{
-        width: var(--twiki-sidebar-w) !important;
-        max-width: var(--twiki-sidebar-w) !important;
-    }}
-    /* ندفع حاوية التطبيق كاملة يمينًا بمقدار عرض القائمة الجانبية تمامًا،
-       فيبقى المحتوى الرئيسي بعيدًا عنها بدون أي تراكب. */
-    [data-testid="stAppViewContainer"] {{
-        margin-right: var(--twiki-sidebar-w) !important;
-        margin-left: 0 !important;
-        direction: rtl;
-    }}
+       تم التراجع مؤقتًا عن محاولتي CSS السابقتين (row-reverse ثم
+       position:fixed) لأن كلتيهما إما لم تؤثر أو سبّبت كسرًا بصريًا —
+       ما يعني أن البنية الفعلية للصفحة (DOM) تختلف عمّا افترضناه.
+       رجعنا لحالة مستقرة هنا ريثما نحصل على معلومة دقيقة عن البنية
+       عبر أداة التشخيص أسفل الشريط الجانبي. */
 
     /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"] {{
@@ -722,9 +695,12 @@ st.markdown(
         /* الحاوية الرئيسية تبقى flex-row (نفس اللابتوب) — القائمة الجانبية
            والمحتوى جنب بعض، مو فوق بعض. لا نغيّر display هنا إطلاقًا. */
 
-        /* عرض القائمة الجانبية أصبح موحّدًا عبر --twiki-sidebar-w أعلاه،
-           ويتقلّص تلقائيًا على الشاشات الضيقة بفضل vw في clamp() — لا حاجة
-           لإعادة ضبطه هنا. */
+        /* القائمة الجانبية: نفس اللابتوب، بعرض مصغّر ثابت، وظاهرة دائمًا */
+        section[data-testid="stSidebar"] {{
+            width: clamp(88px, 27vw, 108px) !important;
+            min-width: clamp(88px, 27vw, 108px) !important;
+            max-width: clamp(88px, 27vw, 108px) !important;
+        }}
         /* إخفاء زر طي/فتح القائمة — يجب أن تبقى ظاهرة دائمًا بدون إمكانية إخفائها */
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="collapsedControl"] {{
@@ -1291,9 +1267,65 @@ def page_settings():
 
 
 # =====================================================================
+# 🔧 أداة تشخيص مؤقتة — نحذفها بعد ما ناخذ المعلومة المطلوبة
+# تطبع البنية الحقيقية (DOM) حول القائمة الجانبية: كل عنصر أب، مع
+# display / flex-direction / position / direction الفعلية له، حتى نعرف
+# بالضبط أي عنصر هو الحاوية الحقيقية بدل ما نخمّن ونكسر التصميم.
+# =====================================================================
+def render_sidebar_diagnostic():
+    with st.expander("🔧 تشخيص مؤقت لبنية الصفحة (اضغطي هنا وابعتيلي لقطة شاشة لهذا الصندوق)", expanded=True):
+        components.html(
+            """
+            <div id="twiki-diag" style="font-family:monospace;font-size:12px;
+                white-space:pre-wrap;color:#0f0;background:#111;padding:10px;
+                border-radius:8px;direction:ltr;text-align:left;line-height:1.5;">
+                جارِ الفحص...
+            </div>
+            <script>
+            function describe(el) {
+                if (!el) return "null";
+                const cs = window.parent.getComputedStyle(el);
+                const tid = el.getAttribute ? el.getAttribute("data-testid") : null;
+                const cls = (el.className || "").toString().slice(0, 70);
+                return "<" + el.tagName.toLowerCase() + ">"
+                    + "  testid=" + tid
+                    + "  class=" + cls
+                    + "\\n    display=" + cs.display
+                    + "  flexDirection=" + cs.flexDirection
+                    + "  position=" + cs.position
+                    + "  direction=" + cs.direction
+                    + "  width=" + cs.width;
+            }
+            try {
+                const doc = window.parent.document;
+                const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+                let lines = [];
+                if (!sidebar) {
+                    lines.push("لم يتم العثور على section[data-testid=stSidebar] !");
+                } else {
+                    let el = sidebar;
+                    let depth = 0;
+                    while (el && depth < 8) {
+                        lines.push((depth === 0 ? "[stSidebar نفسها] " : "[أب رقم " + depth + "] ") + describe(el));
+                        el = el.parentElement;
+                        depth++;
+                    }
+                }
+                document.getElementById("twiki-diag").innerText = lines.join("\\n\\n");
+            } catch (e) {
+                document.getElementById("twiki-diag").innerText = "خطأ: " + e.message;
+            }
+            </script>
+            """,
+            height=520,
+        )
+
+
+# =====================================================================
 # التشغيل
 # =====================================================================
 render_sidebar()
+render_sidebar_diagnostic()
 
 _PAGES = {
     "home": page_home,
