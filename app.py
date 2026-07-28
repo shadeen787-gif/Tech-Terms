@@ -1306,7 +1306,9 @@ st.markdown(
     <style>
     [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] {
         display: flex !important;
+        flex-wrap: nowrap !important;
     }
+    /* الشريط الجانبي: عنصر flex بعرض ثابت لا يتقلّص ولا يتمدد */
     section[data-testid="stSidebar"][data-testid="stSidebar"] {
         order: -9999 !important;
         position: relative !important;
@@ -1314,9 +1316,22 @@ st.markdown(
         right: auto !important;
         margin: 0 !important;
         transform: none !important;
+        flex: 0 0 auto !important;
     }
+    /* المحتوى الرئيسي: كان على الأغلب position:absolute أو width:100% ثابت
+       يتجاهل flex كليًا ويتمدد فوق الشريط — نجبره هنا يكون عنصر flex عادي
+       يأخذ المساحة المتبقية فقط، لا كل عرض الشاشة. */
     [data-testid="stAppViewContainer"][data-testid="stAppViewContainer"] > *:not(section[data-testid="stSidebar"]) {
         order: 9999 !important;
+        position: relative !important;
+        inset: auto !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        flex: 1 1 0% !important;
+        width: auto !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
     }
     </style>
     """,
