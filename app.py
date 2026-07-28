@@ -1206,37 +1206,59 @@ _PAGES.get(st.session_state.page, page_home)()
 st.markdown(
     """
     <style>
-    /* ---------- عناصر التحكم بالطي/الفتح (☰ / «) — لكلا الوضعين ---------- */
-    /* stSidebarCollapsedControl: زر إعادة الفتح (يظهر وقت الطي).
-       button[kind="header"]: سهم الطي داخل الشريط نفسه وقت الفتح.
-       نلوّن الاثنين بألوان الثيم (تتكيّف تلقائيًا فاتح/داكن) بدل ألوان
-       ثابتة، لضمان تباين كافٍ في الوضعين. */
-    [data-testid="stSidebarCollapsedControl"],
-    button[kind="header"] {
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-    }
+    /* ---------- عناصر التحكم بالطي/الفتح: ☰ للفتح، ✕ للإغلاق ---------- */
+    /* مهم: نحصر الـ selector داخل section[data-testid="stSidebar"] فقط —
+       button[kind="header"] بدون حصر كان يطال أزرار أخرى غير متعلقة
+       بالشريط (مثل GitHub/Fork في شريط أدوات الاستضافة)، فيلوّنها بالخطأ
+       ولا يلوّن الزر الصحيح. كما نتجاهل أيقونة Streamlit الأصلية (SVG)
+       ونعرض حرفنا الخاص (☰ / ✕) عبر ::after لضمان الشكل المطلوب بدقة.
+       الألوان هنا ثابتة (خلفية فاتحة + حدّ أسود) لا تعتمد على الثيم، حتى
+       تبقى واضحة تمامًا فوق أي خلفية (فاتحة أو داكنة). */
     [data-testid="stSidebarCollapsedControl"] button,
-    button[kind="header"] {
-        background: var(--bg-elev2) !important;
-        border: 1.5px solid var(--violet) !important;
+    section[data-testid="stSidebar"] button[kind="header"] {
+        background: #f2f2f5 !important;
+        border: 2px solid #000 !important;
         border-radius: 10px !important;
-        box-shadow: 0 2px 10px rgba(0,0,0,.18) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,.28) !important;
+        position: relative !important;
     }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    button[kind="header"] svg,
-    [data-testid="stSidebarCollapsedControl"] path,
-    button[kind="header"] path {
-        fill: var(--text) !important;
-        color: var(--text) !important;
-        stroke: var(--text) !important;
+    [data-testid="stSidebarCollapsedControl"] button svg,
+    [data-testid="stSidebarCollapsedControl"] button path,
+    section[data-testid="stSidebar"] button[kind="header"] svg,
+    section[data-testid="stSidebar"] button[kind="header"] path {
+        display: none !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button::after {
+        content: "☰";
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: #000;
+        line-height: 1;
+    }
+    section[data-testid="stSidebar"] button[kind="header"]::after {
+        content: "✕";
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #000;
+        line-height: 1;
     }
     [data-testid="stSidebarCollapsedControl"] {
         position: fixed !important;
         top: 0.6rem !important;
         right: 0.6rem !important;
         left: auto !important;
+        z-index: 999999 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     /* =================== سطح المكتب (min-width: 769px) ===================
@@ -1337,6 +1359,23 @@ components.html(
     <script>
     (function () {
         const doc = window.parent.document;
+
+        /* إغلاق تلقائي عند التنقّل: هذا الجزء ينفّذ فقط لما تتغيّر الصفحة
+           فعليًا (راجع تعليق تمرير st.session_state.page أسفل الكتلة)،
+           لأن Streamlit لا يعيد تحميل مكوّن components.html إلا إذا تغيّر
+           محتواه الفعلي — وربط المحتوى برقم/اسم الصفحة يضمن إعادة التنفيذ
+           عند كل تنقّل فقط، لا عند أي تفاعل آخر. */
+        (function autoCloseOnNav() {
+            const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+            const isMobile = window.parent.innerWidth <= 768;
+            if (sidebar && isMobile && sidebar.getAttribute('aria-expanded') === 'true') {
+                const closeBtn =
+                    sidebar.querySelector('button[kind="header"]') ||
+                    sidebar.querySelector('button');
+                if (closeBtn) closeBtn.click();
+            }
+        })();
+
         function ensureBackdrop() {
             let bd = doc.getElementById('twiki-sidebar-backdrop');
             if (!bd) {
@@ -1376,6 +1415,7 @@ components.html(
         window.parent.addEventListener('resize', sync);
     })();
     </script>
-    """,
+    """
+    + f"<!-- page:{st.session_state.page} -->",
     height=0,
 )
