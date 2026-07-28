@@ -643,187 +643,167 @@ st.markdown(
     div[data-testid="stToggle"] label p {{ color: var(--text) !important; font-weight:600; }}
 
     /* =====================================================================
-       دعم الجوال والشاشات الصغيرة — كل القواعد هنا محصورة داخل
-       @media (max-width: 768px) فقط، ولا تؤثر إطلاقًا على اللابتوب/التابلت.
-       نستخدم clamp()/vw بدل القيم الثابتة عشان يناسب كل مقاسات الجوالات
-       (320px إلى 768px) بدون transform أو zoom.
+       دعم الجوال — تخطيط عمودين حقيقي (نفس تخطيط اللابتوب)، مو إعادة تصميم.
+       القائمة الجانبية الأصلية لـ Streamlit تبقى ظاهرة دائمًا بجانب المحتوى
+       (نفس ما هي باللابتوب)، فقط نضيّق عرضها ونصغّر الخطوط/الحشو. كل القواعد
+       هنا محصورة داخل @media (max-width: 768px) ولا تؤثر على اللابتوب.
        ===================================================================== */
-    .st-key-mobile_sidebar_card {{ display: none; }}
-
     @media (max-width: 768px) {{
         html, body {{ overflow-x: hidden !important; }}
 
-        /* إخفاء القائمة الجانبية الأصلية وزر فتحها بالكامل على الجوال */
-        section[data-testid="stSidebar"],
+        /* الحاوية الرئيسية تبقى flex-row (نفس اللابتوب) — القائمة الجانبية
+           والمحتوى جنب بعض، مو فوق بعض. لا نغيّر display هنا إطلاقًا. */
+
+        /* القائمة الجانبية: نفس اللابتوب، بعرض مصغّر ثابت، وظاهرة دائمًا */
+        section[data-testid="stSidebar"] {{
+            width: clamp(88px, 27vw, 108px) !important;
+            min-width: clamp(88px, 27vw, 108px) !important;
+            max-width: clamp(88px, 27vw, 108px) !important;
+        }}
+        /* إخفاء زر طي/فتح القائمة — يجب أن تبقى ظاهرة دائمًا بدون إمكانية إخفائها */
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="collapsedControl"] {{
             display: none !important;
         }}
-        div[data-testid="stAppViewContainer"] {{
-            display: block !important;
-        }}
 
-        .block-container {{
-            max-width: 100% !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding-left: clamp(.75rem, 4vw, 1.25rem) !important;
-            padding-right: clamp(.75rem, 4vw, 1.25rem) !important;
-            padding-top: clamp(.9rem, 4vw, 1.2rem) !important;
-            box-sizing: border-box !important;
+        /* محتوى القائمة الجانبية: تصغير شامل ليتناسب مع العرض الضيّق */
+        section[data-testid="stSidebar"] .block-container {{
+            padding: clamp(.6rem, 3vw, .9rem) clamp(.35rem, 2vw, .5rem) !important;
         }}
-        .block-container * {{ max-width: 100%; }}
-
-        /* ---------- البطاقة الجانبية الدائمة للجوال — بنفس هوية اللابتوب ----------
-           لا تختفي ولا تنبثق؛ عنصر ثابت داخل تدفق الصفحة (مو position:fixed)
-           عمدًا، حتى لا تتصادم مع شريط Streamlit Cloud العلوي (Fork/GitHub)
-           اللي سبق وسبب مشاكل تراكب مع أي عنصر عائم مثبّت بأعلى الشاشة. */
-        .st-key-mobile_sidebar_card {{
-            display: block !important;
-            width: 100%;
-            box-sizing: border-box;
-            background: var(--bg-elev);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: clamp(1rem, 4.5vw, 1.3rem) clamp(.9rem, 4vw, 1.1rem);
-            margin-bottom: clamp(1rem, 4.5vw, 1.3rem);
-            box-shadow: 0 10px 30px var(--shadow);
-        }}
-        .st-key-mobile_sidebar_card .brand {{
-            font-size: clamp(1.15rem, 5vw, 1.35rem) !important;
+        section[data-testid="stSidebar"] .brand {{
+            font-size: clamp(.68rem, 3vw, .78rem) !important;
+            flex-direction: column !important;
+            gap: .1rem !important;
+            text-align: center;
             justify-content: center;
         }}
-        .st-key-mobile_sidebar_card .brand-sub {{
-            font-size: clamp(.75rem, 3.2vw, .85rem) !important;
-            text-align: center;
+        section[data-testid="stSidebar"] .brand-sub {{
+            display: none;
         }}
-        .st-key-mobile_sidebar_card div[data-testid="stButton"] button {{
-            background: var(--bg-elev2) !important;
-            color: var(--text) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            font-size: clamp(.85rem, 3.6vw, .95rem) !important;
-            padding: clamp(.6rem, 2.8vw, .8rem) clamp(.4rem, 2vw, .6rem) !important;
+        section[data-testid="stSidebar"] div[data-testid="stButton"] button {{
+            font-size: clamp(.62rem, 2.8vw, .72rem) !important;
+            padding: clamp(.4rem, 2vw, .55rem) clamp(.15rem, 1vw, .3rem) !important;
+            line-height: 1.2 !important;
+            white-space: normal !important;
+            word-break: break-word !important;
         }}
-        .st-key-mobile_sidebar_card div[data-testid="stHorizontalBlock"] {{
-            flex-direction: row !important;
-            flex-wrap: wrap !important;
-            gap: clamp(.5rem, 2.5vw, .7rem) !important;
-            margin-bottom: clamp(.5rem, 2.5vw, .7rem) !important;
+        section[data-testid="stSidebar"] .theme-label {{
+            font-size: clamp(.6rem, 2.6vw, .7rem) !important;
         }}
-        .st-key-mobile_sidebar_card div[data-testid="stHorizontalBlock"] > div {{
-            flex: 1 1 0 !important;
-            width: auto !important;
-            min-width: 0 !important;
+        section[data-testid="stSidebar"] div[data-testid="stRadio"] label p {{
+            font-size: clamp(.6rem, 2.6vw, .7rem) !important;
         }}
-        .st-key-mobile_sidebar_card .theme-label {{
-            font-size: clamp(.8rem, 3.4vw, .9rem);
-            text-align: center;
-        }}
-        .st-key-mobile_sidebar_card div[data-testid="stRadio"] > div {{
-            justify-content: center !important;
-        }}
-        .st-key-mobile_sidebar_card .sidebar-stats {{
-            justify-content: center !important;
+        section[data-testid="stSidebar"] .sidebar-stats {{
+            font-size: clamp(.6rem, 2.6vw, .68rem) !important;
         }}
 
-        /* ---------- شبكة عمودين لبطاقتي "اقتراحات المصطلحات" و"إحصائيات سريعة" ----------
-           السبب الحقيقي لعدم ظهور الشبكة سابقًا: Streamlit نفسه يفرض
-           flex-direction: column تلقائيًا على div[data-testid="stHorizontalBlock"]
-           عند الشاشات الضيقة (سلوك مدمج فيه)، فكان يُبطل flex-wrap بالكامل مهما
-           كتبنا. الإصلاح: نجبر flex-direction: row صراحة هنا فوق سلوك Streamlit
-           الافتراضي، وبعدها يعمل flex-wrap بشكل صحيح. */
+        /* المحتوى الرئيسي يستخدم باقي المساحة تلقائيًا (flex:1 من Streamlit) */
+        .block-container {{
+            padding-left: clamp(.6rem, 3vw, .9rem) !important;
+            padding-right: clamp(.6rem, 3vw, .9rem) !important;
+            padding-top: clamp(.7rem, 3vw, 1rem) !important;
+        }}
+
+        /* ---------- شبكة عمودين لكل الأقسام (اقتراحات / إحصائيات / مصطلحات) ----------
+           سبب فشل flex-wrap سابقًا: Streamlit يفرض flex-direction: column تلقائيًا
+           على div[data-testid="stHorizontalBlock"] بالشاشات الضيقة، فنجبر
+           flex-direction: row صراحة هنا فوق سلوكه الافتراضي. */
         .st-key-suggestions_panel div[data-testid="stHorizontalBlock"],
-        .st-key-stats_panel div[data-testid="stHorizontalBlock"] {{
+        .st-key-stats_panel div[data-testid="stHorizontalBlock"],
+        .st-key-terms_grid div[data-testid="stHorizontalBlock"] {{
             flex-direction: row !important;
             flex-wrap: wrap !important;
-            row-gap: clamp(.5rem, 2.5vw, .7rem) !important;
-            column-gap: clamp(.5rem, 2.5vw, .7rem) !important;
+            row-gap: clamp(.4rem, 2vw, .6rem) !important;
+            column-gap: clamp(.4rem, 2vw, .6rem) !important;
         }}
         .st-key-suggestions_panel div[data-testid="stHorizontalBlock"] > div,
-        .st-key-stats_panel div[data-testid="stHorizontalBlock"] > div {{
+        .st-key-stats_panel div[data-testid="stHorizontalBlock"] > div,
+        .st-key-terms_grid div[data-testid="stHorizontalBlock"] > div {{
             flex: 0 0 47% !important;
             width: 47% !important;
             min-width: 47% !important;
             box-sizing: border-box !important;
         }}
+        .st-key-terms_grid div[data-testid="stButton"] button {{
+            height: 100%;
+            min-height: clamp(2.6rem, 11vw, 3.1rem);
+        }}
 
         /* ---------- عنوان المصطلح والصفحة ---------- */
         .term-hero {{ padding-bottom: clamp(.7rem, 3vw, .9rem); margin-bottom: clamp(.9rem, 4vw, 1.1rem); }}
-        .term-title {{ font-size: clamp(1.35rem, 7vw, 1.8rem) !important; line-height: 1.25 !important; }}
-        .term-sub {{ font-size: clamp(.85rem, 3.6vw, .95rem) !important; }}
-        .term-eyebrow {{ font-size: clamp(.7rem, 2.8vw, .8rem) !important; }}
-        .page-title {{ font-size: clamp(1.2rem, 5.5vw, 1.4rem) !important; }}
-        .page-sub {{ font-size: clamp(.8rem, 3.4vw, .9rem) !important; margin-bottom: clamp(.8rem, 3.5vw, 1rem) !important; }}
-        .empty-state {{ padding: clamp(1.1rem, 5vw, 1.5rem) !important; font-size: clamp(.85rem, 3.5vw, .95rem) !important; }}
+        .term-title {{ font-size: clamp(1.2rem, 6.5vw, 1.6rem) !important; line-height: 1.25 !important; }}
+        .term-sub {{ font-size: clamp(.8rem, 3.4vw, .9rem) !important; }}
+        .term-eyebrow {{ font-size: clamp(.68rem, 2.6vw, .76rem) !important; }}
+        .page-title {{ font-size: clamp(1.1rem, 5vw, 1.3rem) !important; }}
+        .page-sub {{ font-size: clamp(.76rem, 3.2vw, .85rem) !important; margin-bottom: clamp(.7rem, 3vw, .9rem) !important; }}
+        .empty-state {{ padding: clamp(1rem, 4.5vw, 1.3rem) !important; font-size: clamp(.8rem, 3.4vw, .9rem) !important; }}
 
         /* ---------- مربع البحث ---------- */
         div[data-testid="stTextInput"] input {{
-            padding: clamp(.65rem, 3vw, .85rem) clamp(2.3rem, 9vw, 2.9rem) clamp(.65rem, 3vw, .85rem) clamp(.8rem, 3.6vw, 1rem) !important;
-            font-size: clamp(.9rem, 3.6vw, 1rem) !important;
+            padding: clamp(.6rem, 2.8vw, .8rem) clamp(2.2rem, 8vw, 2.7rem) clamp(.6rem, 2.8vw, .8rem) clamp(.7rem, 3.4vw, .9rem) !important;
+            font-size: clamp(.82rem, 3.2vw, .95rem) !important;
             border-radius: 14px !important;
         }}
         div[data-testid="stTextInput"]::after {{
-            top: clamp(1.85rem, 7vw, 2.2rem) !important;
-            right: clamp(.9rem, 3.6vw, 1.1rem) !important;
-            font-size: clamp(1rem, 3.6vw, 1.1rem) !important;
+            top: clamp(1.75rem, 6.5vw, 2.05rem) !important;
+            right: clamp(.8rem, 3.2vw, 1rem) !important;
+            font-size: clamp(.9rem, 3.2vw, 1rem) !important;
         }}
 
         /* ---------- زر اشرح لي ---------- */
         .st-key-search_btn_wrap div[data-testid="stButton"] button {{
-            padding: clamp(.7rem, 3vw, .85rem) clamp(1rem, 4.5vw, 1.3rem) !important;
-            font-size: clamp(.95rem, 3.8vw, 1.05rem) !important;
+            padding: clamp(.65rem, 2.8vw, .8rem) clamp(.9rem, 4vw, 1.2rem) !important;
+            font-size: clamp(.88rem, 3.4vw, 1rem) !important;
         }}
 
         /* ---------- أزرار الاقتراحات / المصطلحات ---------- */
         .st-key-suggestions_panel div[data-testid="stButton"] button,
         .st-key-terms_grid div[data-testid="stButton"] button {{
-            font-size: clamp(.85rem, 3.6vw, .95rem) !important;
-            padding: clamp(.5rem, 2.4vw, .6rem) clamp(.6rem, 3vw, .75rem) !important;
+            font-size: clamp(.78rem, 3.2vw, .88rem) !important;
+            padding: clamp(.45rem, 2.2vw, .55rem) clamp(.5rem, 2.6vw, .65rem) !important;
         }}
 
         /* ---------- Accordion (المصطلحات) ---------- */
         div[data-testid="stExpander"] summary {{
-            font-size: clamp(.95rem, 4vw, 1.05rem) !important;
-            padding: clamp(.65rem, 3vw, .8rem) clamp(.8rem, 3.6vw, 1rem) !important;
+            font-size: clamp(.85rem, 3.6vw, .95rem) !important;
+            padding: clamp(.55rem, 2.6vw, .7rem) clamp(.7rem, 3.2vw, .9rem) !important;
         }}
         div[data-testid="stExpanderDetails"] {{
-            padding: clamp(.7rem, 3vw, .85rem) clamp(.75rem, 3.4vw, .9rem) !important;
+            padding: clamp(.6rem, 2.8vw, .75rem) clamp(.65rem, 3vw, .8rem) !important;
         }}
 
         /* ---------- اللوحات العامة (نتيجة الشرح / السجل / المفضلة / الإحصائيات) ---------- */
         .st-key-result_panel, .st-key-suggestions_panel, .st-key-stats_panel, .st-key-settings_panel {{
-            padding: clamp(1rem, 4.5vw, 1.3rem) clamp(.85rem, 4vw, 1.1rem) !important;
-            margin-top: clamp(.85rem, 3.6vw, 1.1rem) !important;
+            padding: clamp(.85rem, 4vw, 1.15rem) clamp(.7rem, 3.4vw, .95rem) !important;
+            margin-top: clamp(.75rem, 3.2vw, 1rem) !important;
             border-radius: 16px !important;
             box-sizing: border-box !important;
         }}
-        .panel-title {{ font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; margin-bottom: .7rem !important; }}
-        .result-head {{ font-size: clamp(1.2rem, 5.2vw, 1.4rem) !important; margin-bottom: .8rem !important; }}
+        .panel-title {{ font-size: clamp(.95rem, 4vw, 1.1rem) !important; margin-bottom: .6rem !important; }}
+        .result-head {{ font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; margin-bottom: .7rem !important; }}
 
         /* ---------- أقسام النتيجة ---------- */
         .sec-num {{
-            width: clamp(30px, 8vw, 36px) !important; height: clamp(30px, 8vw, 36px) !important;
-            font-size: clamp(.85rem, 3.6vw, 1rem) !important;
+            width: clamp(28px, 7vw, 34px) !important; height: clamp(28px, 7vw, 34px) !important;
+            font-size: clamp(.8rem, 3.2vw, .92rem) !important;
         }}
-        .sec-title {{ font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; }}
-        .sec-divider {{ margin: clamp(.7rem, 3vw, .95rem) 0 !important; }}
+        .sec-title {{ font-size: clamp(.95rem, 4vw, 1.1rem) !important; }}
+        .sec-divider {{ margin: clamp(.6rem, 2.8vw, .85rem) 0 !important; }}
         .st-key-result_panel p, .st-key-result_panel li {{
-            font-size: clamp(.9rem, 3.8vw, 1rem) !important;
-            line-height: 1.85 !important;
+            font-size: clamp(.82rem, 3.4vw, .92rem) !important;
+            line-height: 1.8 !important;
         }}
 
         /* ---------- بلوك الكود — قابل للتمرير الأفقي بدل ما يكسر الصفحة ---------- */
-        .code-tab {{ padding: clamp(.4rem, 2vw, .55rem) clamp(.6rem, 3vw, .9rem) !important; }}
-        .code-lang {{ font-size: clamp(.68rem, 2.8vw, .78rem) !important; }}
+        .code-tab {{ padding: clamp(.35rem, 1.8vw, .5rem) clamp(.55rem, 2.6vw, .8rem) !important; }}
+        .code-lang {{ font-size: clamp(.64rem, 2.6vw, .74rem) !important; }}
         div[data-testid="stCode"] {{
             overflow-x: auto !important;
             max-width: 100% !important;
             -webkit-overflow-scrolling: touch;
         }}
         div[data-testid="stCode"] pre, div[data-testid="stCode"] code {{
-            font-size: clamp(.78rem, 3.2vw, .88rem) !important;
+            font-size: clamp(.72rem, 2.8vw, .82rem) !important;
             white-space: pre !important;
         }}
 
@@ -831,15 +811,15 @@ st.markdown(
         .block-container img {{ max-width: 100% !important; height: auto !important; }}
 
         /* ---------- إحصائيات ---------- */
-        .stat-box {{ padding: clamp(.6rem, 3vw, .85rem) clamp(.35rem, 2vw, .55rem) !important; border-radius: 12px !important; }}
-        .stat-num {{ font-size: clamp(1.3rem, 6vw, 1.7rem) !important; }}
-        .stat-num-sm {{ font-size: clamp(.85rem, 3.6vw, 1rem) !important; }}
-        .stat-label {{ font-size: clamp(.72rem, 3vw, .82rem) !important; }}
+        .stat-box {{ padding: clamp(.55rem, 2.6vw, .75rem) clamp(.3rem, 1.6vw, .45rem) !important; border-radius: 12px !important; }}
+        .stat-num {{ font-size: clamp(1.15rem, 5.4vw, 1.5rem) !important; }}
+        .stat-num-sm {{ font-size: clamp(.78rem, 3.2vw, .9rem) !important; }}
+        .stat-label {{ font-size: clamp(.66rem, 2.8vw, .76rem) !important; }}
 
         /* ---------- السجل / المفضلة ---------- */
-        .hist-term, .fav-head {{ font-size: clamp(.9rem, 3.8vw, 1rem) !important; }}
-        .hist-time {{ font-size: clamp(.68rem, 2.8vw, .78rem) !important; }}
-        .fav-term {{ font-size: clamp(.78rem, 3.2vw, .85rem) !important; }}
+        .hist-term, .fav-head {{ font-size: clamp(.82rem, 3.4vw, .92rem) !important; }}
+        .hist-time {{ font-size: clamp(.64rem, 2.6vw, .72rem) !important; }}
+        .fav-term {{ font-size: clamp(.72rem, 3vw, .8rem) !important; }}
     }}
     </style>
 
@@ -1101,47 +1081,6 @@ def render_sidebar():
         )
 
 
-# =====================================================================
-# القائمة الجانبية على الجوال — نسخة دائمة الظهور (بدون Hamburger/Toggle)
-# بنفس تصميم الشريط الجانبي في اللابتوب تمامًا (الخلفية، الشعار، الروابط،
-# المظهر، الإحصائيات)، لكن الروابط مرتبة كشبكة عمودين بدل عمود واحد طويل
-# حتى تكون البطاقة مقاربة للمربع بدل مستطيل طويل.
-# =====================================================================
-def render_mobile_sidebar_card():
-    with st.container(key="mobile_sidebar_card"):
-        st.markdown('<div class="brand">🖥️ <span>TechWiki</span></div>', unsafe_allow_html=True)
-        st.markdown('<div class="brand-sub">Learn Technical Terms with AI</div>', unsafe_allow_html=True)
-        st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
-
-        for i in range(0, len(NAV_ITEMS), 2):
-            pair = NAV_ITEMS[i:i + 2]
-            row_cols = st.columns(2)
-            for col, (key, icon, label) in zip(row_cols, pair):
-                with col:
-                    if st.button(f"{icon}  {label}", key=f"mobilenav_{key}", use_container_width=True):
-                        st.session_state.page = key
-                        st.rerun()
-
-        st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="theme-label">المظهر</div>', unsafe_allow_html=True)
-        st.radio(
-            "المظهر", options=["dark", "light"],
-            format_func=lambda v: "🌙 داكن" if v == "dark" else "☀️ فاتح",
-            key="theme_radio_mobile", on_change=_sync_theme_from_mobile,
-            horizontal=True, label_visibility="collapsed",
-        )
-
-        st.markdown('<div class="nav-spacer"></div>', unsafe_allow_html=True)
-        st.markdown(
-            f"""<div class="sidebar-stats">
-                <div>🔎 {len(st.session_state.history)} عملية بحث</div>
-                <div>⭐ {len(st.session_state.favorites)} عنصر محفوظ</div>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-
-
-
 def page_home():
     if "pending_term" in st.session_state:
         st.session_state.term_input = st.session_state.pop("pending_term")
@@ -1281,7 +1220,6 @@ def page_settings():
 # التشغيل
 # =====================================================================
 render_sidebar()
-render_mobile_sidebar_card()
 
 _PAGES = {
     "home": page_home,
